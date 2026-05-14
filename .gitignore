@@ -1,0 +1,30 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# Publish artifacts
+publish/
+*.wixpdb
+*.msi
+
+# Python virtual environments and caches
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+*.pyc
+
+# IDE/editor local files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Local tool state
+.claude/
+.progress.json
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp

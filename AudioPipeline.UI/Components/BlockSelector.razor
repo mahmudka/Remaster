@@ -1,0 +1,31 @@
+@foreach (var block in Blocks)
+{
+    <MudCheckBox @bind-Value="block.Selected"
+                 Label="@block.Label"
+                 Color="Color.Primary"
+                 Dense="@Dense" />
+}
+
+@code {
+    public record BlockItem(string Name, string Label)
+    {
+        public bool Selected { get; set; } = true;
+    }
+
+    [Parameter] public bool Dense { get; set; } = false;
+
+    public List<BlockItem> Blocks { get; } = new()
+    {
+        new("Analysis",  "1. Анализ трека"),
+        new("Stems",     "2. Разбивка на стемы"),
+        new("Midi",      "3. MIDI транскрипция"),
+        new("Vst",       "4. VST рендер"),
+        new("Knowledge", "5. Анализ книг (Claude)"),
+        new("Mix",       "6. Микширование"),
+        new("Master",    "7. Мастеринг"),
+        new("Rvc",       "8. RVC вокал")   { Selected = false },
+    };
+
+    public List<string> GetSelected() =>
+        Blocks.Where(b => b.Selected).Select(b => b.Name).ToList();
+}

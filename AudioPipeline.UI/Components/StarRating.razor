@@ -1,0 +1,26 @@
+@for (int i = 1; i <= 5; i++)
+{
+    var star = i;
+    <MudIconButton Icon="@(star <= Value ? Icons.Material.Filled.Star : Icons.Material.Outlined.Star)"
+                   Color="@(star <= Value ? Color.Warning : Color.Default)"
+                   Size="Size.Large"
+                   OnClick="@(() => SetRating(star))" />
+}
+
+@if (Value > 0)
+{
+    <MudText Typo="Typo.body2" Class="ml-2" Style="display:inline">@Labels[Value - 1]</MudText>
+}
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    static readonly string[] Labels = { "Плохо", "Ниже среднего", "Нормально", "Хорошо", "Отлично" };
+
+    async Task SetRating(int v)
+    {
+        Value = v;
+        await ValueChanged.InvokeAsync(v);
+    }
+}

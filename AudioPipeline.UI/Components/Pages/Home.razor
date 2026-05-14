@@ -1,0 +1,120 @@
+@page "/"
+@rendermode InteractiveServer
+@inject PipelineService PipelineService
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>AudioPipeline Pro</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Загрузка трека</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="8">
+        <MudPaper Class="@DropZoneClass" Style="min-height:200px; cursor:pointer;"
+                  @ondragover="OnDragOver"
+                  @ondragleave="OnDragLeave">
+            <InputFile id="fileInput" OnChange="OnFileSelected" accept=".mp3,.wav" style="display:none" />
+            <label for="fileInput" style="cursor:pointer; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.AudioFile" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
+                @if (SelectedFile is null)
+                {
+                    <MudText Typo="Typo.h6">Перетащи MP3 или WAV сюда</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">или нажми для выбора файла</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6" Color="Color.Success">@SelectedFile.Name</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@FormatSize(SelectedFile.Size)</MudText>
+                }
+            </label>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3">Референс (необязательно)</MudText>
+            <InputFile id="refInput" OnChange="OnRefSelected" accept=".mp3,.wav" style="display:none" />
+            <label for="refInput">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Compare">
+                    @(ReferenceFile is null ? "Выбрать референс" : ReferenceFile.Name)
+                </MudButton>
+            </label>
+
+            <MudDivider Class="my-3" />
+
+            <MudText Typo="Typo.h6" Class="mb-2">Блоки обработки</MudText>
+            @foreach (var block in Blocks)
+            {
+                <MudCheckBox @bind-Value="block.Selected" Label="@block.Label" Color="Color.Primary" Dense="true" />
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.PlayArrow"
+                   Disabled="@(SelectedFile is null || IsRunning)"
+                   OnClick="StartPipeline">
+            @(IsRunning ? "Обрабатывается..." : "Запустить")
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    IBrowserFile? SelectedFile;
+    IBrowserFile? ReferenceFile;
+    bool IsDragging;
+    bool IsRunning;
+
+    string DropZoneClass => IsDragging
+        ? "pa-6 d-flex flex-column align-center justify-center mud-border-primary"
+        : "pa-6 d-flex flex-column align-center justify-center";
+
+    List<BlockItem> Blocks = new()
+    {
+        new("Analysis",  "1. Анализ трека",        true),
+        new("Stems",     "2. Разбивка на стемы",   true),
+        new("Midi",      "3. MIDI транскрипция",    true),
+        new("Vst",       "4. VST рендер",           true),
+        new("Knowledge", "5. Анализ книг (Claude)", true),
+        new("Mix",       "6. Микширование",         true),
+        new("Master",    "7. Мастеринг",            true),
+        new("Rvc",       "8. RVC вокал",            false),
+    };
+
+    void OnDragOver() => IsDragging = true;
+    void OnDragLeave() => IsDragging = false;
+
+    void OnFileSelected(InputFileChangeEventArgs e) => SelectedFile = e.File;
+    void OnRefSelected(InputFileChangeEventArgs e)  => ReferenceFile  = e.File;
+
+    async Task StartPipeline()
+    {
+        if (SelectedFile is null) return;
+        IsRunning = true;
+
+        try
+        {
+            var selectedBlocks = Blocks.Where(b => b.Selected).Select(b => b.Name).ToList();
+            var jobId = await PipelineService.StartAsync(SelectedFile, ReferenceFile, selectedBlocks);
+            Nav.NavigateTo($"/progress/{jobId}");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка запуска: {ex.Message}", Severity.Error);
+            IsRunning = false;
+        }
+    }
+
+    static string FormatSize(long bytes) => bytes switch
+    {
+        < 1024 * 1024        => $"{bytes / 1024.0:F1} KB",
+        < 1024 * 1024 * 1024 => $"{bytes / 1024.0 / 1024.0:F1} MB",
+        _                    => $"{bytes / 1024.0 / 1024.0 / 1024.0:F1} GB"
+    };
+
+    record BlockItem(string Name, string Label, bool InitialSelected)
+    {
+        public bool Selected { get; set; } = InitialSelected;
+    }
+}

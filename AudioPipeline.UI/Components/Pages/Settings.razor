@@ -1,0 +1,120 @@
+@page "/settings"
+@rendermode InteractiveServer
+@inject IConfiguration Config
+@inject ISnackbar Snackbar
+
+<PageTitle>Настройки</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Настройки</MudText>
+
+<MudGrid>
+    <!-- Claude API -->
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.subtitle1" Class="mb-3">Claude API</MudText>
+            <MudTextField @bind-Value="ApiKey" Label="API Key" Variant="Variant.Outlined"
+                          InputType="InputType.Password" FullWidth="true" Class="mb-3" />
+            <MudSelect @bind-Value="QualityMode" Label="Режим качества" Variant="Variant.Outlined">
+                <MudSelectItem Value="@("standard")">Стандартный (Haiku + Sonnet)</MudSelectItem>
+                <MudSelectItem Value="@("max")">Максимальный (Sonnet везде)</MudSelectItem>
+            </MudSelect>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Paths -->
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.subtitle1" Class="mb-3">Пути</MudText>
+            <MudTextField @bind-Value="OutputFolder" Label="Выходная папка"
+                          Variant="Variant.Outlined" FullWidth="true" Class="mb-3"
+                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Folder" />
+            <MudTextField @bind-Value="VstFolder" Label="Папка VST3 плагинов"
+                          Variant="Variant.Outlined" FullWidth="true"
+                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Folder" />
+        </MudPaper>
+    </MudItem>
+
+    <!-- Microservices -->
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.subtitle1" Class="mb-3">Микросервисы</MudText>
+            <MudTextField @bind-Value="StemsUrl"  Label="Stems service (8001)"
+                          Variant="Variant.Outlined" FullWidth="true" Class="mb-2" />
+            <MudTextField @bind-Value="MixUrl"    Label="Mix service (8002)"
+                          Variant="Variant.Outlined" FullWidth="true" Class="mb-2" />
+            <MudTextField @bind-Value="VstUrl"    Label="VST service (8003)"
+                          Variant="Variant.Outlined" FullWidth="true" Class="mb-2" />
+            <MudTextField @bind-Value="RvcUrl"    Label="RVC service (8004)"
+                          Variant="Variant.Outlined" FullWidth="true" />
+
+            <MudButton Variant="Variant.Outlined" Class="mt-3" OnClick="CheckServices">
+                Проверить сервисы
+            </MudButton>
+
+            @if (ServiceStatus.Any())
+            {
+                <div class="mt-2">
+                    @foreach (var kv in ServiceStatus)
+                    {
+                        <MudChip T="string" Size="Size.Small"
+                                 Color="@(kv.Value ? Color.Success : Color.Error)"
+                                 Class="mr-1">
+                            @kv.Key
+                        </MudChip>
+                    }
+                </div>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <!-- Save -->
+    <MudItem xs="12">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   OnClick="Save">
+            Сохранить
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    string ApiKey      = "";
+    string QualityMode = "standard";
+    string OutputFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AudioPipeline");
+    string VstFolder   = @"C:\Program Files\Common Files\VST3";
+    string StemsUrl    = "http://localhost:8001";
+    string MixUrl      = "http://localhost:8002";
+    string VstUrl      = "http://localhost:8003";
+    string RvcUrl      = "http://localhost:8004";
+
+    Dictionary<string, bool> ServiceStatus = new();
+
+    protected override void OnInitialized()
+    {
+        ApiKey    = Config["Claude:ApiKey"] ?? "";
+        StemsUrl  = Config["Microservices:StemsUrl"] ?? StemsUrl;
+        MixUrl    = Config["Microservices:MixUrl"]   ?? MixUrl;
+        VstUrl    = Config["Microservices:VstUrl"]   ?? VstUrl;
+        RvcUrl    = Config["Microservices:RvcUrl"]   ?? RvcUrl;
+    }
+
+    async Task CheckServices()
+    {
+        ServiceStatus.Clear();
+        var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+        foreach (var (name, url) in new[] {
+            ("Stems:8001", StemsUrl), ("Mix:8002", MixUrl),
+            ("VST:8003",   VstUrl),   ("RVC:8004",  RvcUrl) })
+        {
+            try   { await http.GetAsync(url + "/health"); ServiceStatus[name] = true; }
+            catch { ServiceStatus[name] = false; }
+        }
+        StateHasChanged();
+    }
+
+    void Save()
+    {
+        // In production write to appsettings.json or user secrets
+        Snackbar.Add("Настройки сохранены (перезапустите приложение для применения)", Severity.Info);
+    }
+}

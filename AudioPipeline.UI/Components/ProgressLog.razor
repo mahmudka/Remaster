@@ -1,0 +1,32 @@
+@if (Entries.Any())
+{
+    <div style="font-family:monospace; font-size:0.8rem; max-height:@MaxHeight; overflow-y:auto;">
+        @foreach (var e in Entries)
+        {
+            <div class="@LineClass(e.Status)">
+                <span style="opacity:0.6">@e.Timestamp.ToString("HH:mm:ss")</span>
+                <span class="mx-1">[@e.Block]</span>
+                <span>@e.Message</span>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Ожидание...</MudText>
+}
+
+@code {
+    public record LogEntry(string Block, string Status, string Message, DateTime Timestamp);
+
+    [Parameter] public List<LogEntry> Entries { get; set; } = new();
+    [Parameter] public string MaxHeight { get; set; } = "300px";
+
+    static string LineClass(string status) => "mb-1 " + status switch
+    {
+        "error"   => "mud-error-text",
+        "done"    => "mud-success-text",
+        "running" => "mud-info-text",
+        _         => "",
+    };
+}

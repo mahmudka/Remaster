@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AudioPipeline Pro — WiX 4 Installer
+
+  BUILD STEPS:
+    1. cd installer
+    2. .\generate_components.ps1
+    3. wix build Product.wxs AppFiles.wxs SvcFiles.wxs Launchers.wxs `
+         -ext WixToolset.UI.wixext/4.0.5 `
+         -o ..\publish\AudioPipelinePro.msi
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package
+    Name="AudioPipeline Pro"
+    Version="1.0.0.0"
+    Manufacturer="AudioPipeline"
+    UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
+    Language="1033"
+    Scope="perMachine">
+
+    <SummaryInformation Description="AudioPipeline Pro — AI Audio Mix and Master" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- ── Directory tree ─────────────────────────────────────────── -->
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="ManufacturerDir" Name="AudioPipeline">
+        <Directory Id="APPLICATIONFOLDER" Name="AudioPipeline Pro">
+          <Directory Id="StemsSvcDir" Name="python_stems" />
+          <Directory Id="MixSvcDir"   Name="python_mix" />
+          <Directory Id="VstSvcDir"   Name="cpp_vst" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="StartMenuDir" Name="AudioPipeline Pro" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <!-- ── Features ───────────────────────────────────────────────── -->
+    <Feature Id="MainFeature" Title="AudioPipeline Pro" Level="1">
+      <!-- AppFiles and SvcFiles come from generated wxs -->
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="SvcFiles" />
+      <ComponentGroupRef Id="Launchers" />
+      <ComponentRef Id="CmpStartMenu" />
+      <ComponentRef Id="CmpDesktop" />
+    </Feature>
+
+    <!-- ── UI ─────────────────────────────────────────────────────── -->
+    <Property Id="WIXUI_INSTALLDIR" Value="APPLICATIONFOLDER" />
+    <ui:WixUI Id="WixUI_InstallDir" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+
+  </Package>
+
+  <!-- ── Launchers ──────────────────────────────────────────────────── -->
+  <Fragment>
+    <ComponentGroup Id="Launchers" Directory="APPLICATIONFOLDER">
+      <Component Id="CmpLaunch" Guid="D1E2F3A4-B5C6-7890-DEF0-123456789ABC">
+        <File Id="FileLaunchBat" Source="Launch.bat" KeyPath="yes" />
+      </Component>
+      <Component Id="CmpSetupPy" Guid="E2F3A4B5-C6D7-8901-EF01-23456789ABCD">
+        <File Id="FileSetupPy" Source="setup_python.bat" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <!-- ── Start Menu ─────────────────────────────────────────────────── -->
+  <Fragment>
+    <Component Id="CmpStartMenu" Directory="StartMenuDir"
+               Guid="A4B5C6D7-E8F9-0123-0123-456789ABCDEF">
+      <Shortcut Id="ShortcutSM"
+                Name="AudioPipeline Pro"
+                Description="AI Audio Mix and Master"
+                Target="[APPLICATIONFOLDER]Launch.bat"
+                WorkingDirectory="APPLICATIONFOLDER" />
+      <RemoveFolder Id="RemoveStartMenuDir" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\AudioPipeline\Pro"
+                     Name="StartMenu" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+  <!-- ── Desktop ────────────────────────────────────────────────────── -->
+  <Fragment>
+    <Component Id="CmpDesktop" Directory="DesktopFolder"
+               Guid="B5C6D7E8-F9A0-1234-1234-56789ABCDEF0">
+      <Shortcut Id="ShortcutDesk"
+                Name="AudioPipeline Pro"
+                Description="AI Audio Mix and Master"
+                Target="[APPLICATIONFOLDER]Launch.bat"
+                WorkingDirectory="APPLICATIONFOLDER" />
+      <RegistryValue Root="HKCU" Key="Software\AudioPipeline\Pro"
+                     Name="Desktop" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+</Wix>

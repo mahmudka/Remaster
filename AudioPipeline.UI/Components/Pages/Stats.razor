@@ -1,0 +1,204 @@
+@page "/stats"
+@rendermode InteractiveServer
+@inject PipelineService PipelineService
+@inject ISnackbar Snackbar
+
+<PageTitle>Статистика</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Статистика и обучение</MudText>
+
+<MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" Class="mt-2">
+
+    <!-- ── Tab 1: Recent sessions ─────────────────────────── -->
+    <MudTabPanel Text="Сессии" Icon="@Icons.Material.Filled.History">
+        <div class="pa-4">
+            <MudTable Items="@Sessions" Dense="true" Hover="true" SortLabel="Sort">
+                <HeaderContent>
+                    <MudTh>Файл</MudTh>
+                    <MudTh>Жанр</MudTh>
+                    <MudTh>BPM</MudTh>
+                    <MudTh>Статус</MudTh>
+                    <MudTh>Оценка</MudTh>
+                    <MudTh>Дата</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@System.IO.Path.GetFileName(context.InputFile)</MudTd>
+                    <MudTd>@context.Genre</MudTd>
+                    <MudTd>@context.Bpm?.ToString("F0")</MudTd>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Color="@StatusColor(context.Status)">
+                            @context.Status
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>
+                        @{
+                            var rating = context.Feedbacks.FirstOrDefault()?.Rating;
+                        }
+                        @if (rating.HasValue)
+                        {
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                int star = i;
+                                <MudIcon Icon="@(star <= rating ? Icons.Material.Filled.Star : Icons.Material.Outlined.Star)"
+                                         Color="@(star <= rating ? Color.Warning : Color.Default)"
+                                         Size="Size.Small" />
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">—</MudText>
+                        }
+                    </MudTd>
+                    <MudTd>@context.CreatedAt.ToString("dd.MM HH:mm")</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText Color="Color.Secondary">Нет сессий. Обработай первый трек!</MudText>
+                </NoRecordsContent>
+            </MudTable>
+        </div>
+    </MudTabPanel>
+
+    <!-- ── Tab 2: Learned rules ───────────────────────────── -->
+    <MudTabPanel Text="Обучение" Icon="@Icons.Material.Filled.Psychology">
+        <div class="pa-4">
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudSelect @bind-Value="SelectedGenre"
+                               Label="Жанр"
+                               Variant="Variant.Outlined"
+                               T="string"
+                               AnchorOrigin="Origin.BottomLeft"
+                               Class="mb-3">
+                        @foreach (var g in Genres)
+                        {
+                            <MudSelectItem Value="@g">@g</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudButton Variant="Variant.Outlined"
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="RecalculateAsync"
+                               Disabled="@(IsRecalculating || string.IsNullOrEmpty(SelectedGenre))"
+                               FullWidth="true">
+                        @(IsRecalculating ? "Обновляется..." : "Пересчитать правила")
+                    </MudButton>
+
+                    <MudPaper Class="pa-3 mt-3" Elevation="0" Outlined="true">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Правила обновляются автоматически после каждой оценки.
+                            Минимум 3 оценки 4+ по жанру для появления паттернов.
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="8">
+                    @if (!string.IsNullOrEmpty(SelectedGenre))
+                    {
+                        <LearnedRulesPanel Genre="@SelectedGenre" Rules="@CurrentRules" />
+                    }
+                </MudItem>
+            </MudGrid>
+        </div>
+    </MudTabPanel>
+
+    <!-- ── Tab 3: Skill profiles ──────────────────────────── -->
+    <MudTabPanel Text="Профили" Icon="@Icons.Material.Filled.EmojiEvents">
+        <div class="pa-4">
+            @if (!Skills.Any())
+            {
+                <MudAlert Severity="Severity.Info">
+                    Профили появятся после 20+ оценённых сессий жанра.
+                </MudAlert>
+            }
+            else
+            {
+                <MudGrid>
+                    @foreach (var skill in Skills)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudCard>
+                                <MudCardHeader>
+                                    <CardHeaderContent>
+                                        <MudText Typo="Typo.h6">@skill.Genre</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @skill.ProfileName
+                                        </MudText>
+                                    </CardHeaderContent>
+                                    <CardHeaderActions>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">
+                                            @skill.AvgRating?.ToString("F1") ⭐
+                                        </MudChip>
+                                    </CardHeaderActions>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudText Typo="Typo.body2">
+                                        Сессий: <b>@skill.SessionCount</b>
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        Обновлено @skill.UpdatedAt.ToString("dd.MM.yyyy")
+                                    </MudText>
+                                    <MudProgressLinear
+                                        Value="@((int)((skill.AvgRating ?? 0) / 5.0 * 100))"
+                                        Color="Color.Warning" Rounded="true" Size="Size.Small"
+                                        Class="mt-2" />
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+        </div>
+    </MudTabPanel>
+
+</MudTabs>
+
+@code {
+    List<AudioPipeline.Shared.Models.MixSession>   Sessions = new();
+    List<AudioPipeline.Shared.Models.SkillProfile> Skills   = new();
+    List<AudioPipeline.Shared.Models.LearnedRule>  AllRules = new();
+    List<string> Genres = new();
+
+    string SelectedGenre   = "";
+    bool   IsRecalculating = false;
+
+    List<AudioPipeline.Shared.Models.LearnedRule> CurrentRules
+        => AllRules.Where(r => r.Genre == SelectedGenre).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Sessions = await PipelineService.GetRecentSessionsAsync(50);
+        Skills   = await PipelineService.GetSkillProfilesAsync();
+        AllRules = await PipelineService.GetLearnedRulesAsync();
+        Genres   = await PipelineService.GetGenresAsync();
+
+        if (Genres.Any()) SelectedGenre = Genres[0];
+    }
+
+    async Task RecalculateAsync()
+    {
+        if (string.IsNullOrEmpty(SelectedGenre)) return;
+        IsRecalculating = true;
+        try
+        {
+            var count = await PipelineService.TriggerLearningAsync(SelectedGenre);
+            AllRules = await PipelineService.GetLearnedRulesAsync();
+            Snackbar.Add($"Пересчитано правил: {count} для жанра «{SelectedGenre}»", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Ошибка: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsRecalculating = false;
+        }
+    }
+
+    static Color StatusColor(string status) => status switch
+    {
+        "Done"   => Color.Success,
+        "Failed" => Color.Error,
+        "Mixed"  => Color.Info,
+        _        => Color.Default,
+    };
+}

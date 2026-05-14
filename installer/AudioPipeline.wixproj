@@ -1,0 +1,56 @@
+<Project Sdk="WixToolset.Sdk/4.0.5">
+
+  <PropertyGroup>
+    <OutputName>AudioPipelinePro</OutputName>
+    <OutputType>Package</OutputType>
+    <Platforms>x64</Platforms>
+    <Platform>x64</Platform>
+    <IntermediateOutputPath>obj\</IntermediateOutputPath>
+    <OutputPath>..\publish\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="4.0.5" />
+  </ItemGroup>
+
+  <!-- Auto-harvest .NET published app -->
+  <ItemGroup>
+    <HarvestDirectory Include="..\publish\dotnet">
+      <DirectoryRefId>APPLICATIONFOLDER</DirectoryRefId>
+      <ComponentGroupName>AppFiles</ComponentGroupName>
+      <SuppressCom>true</SuppressCom>
+      <SuppressRegistry>true</SuppressRegistry>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+    </HarvestDirectory>
+  </ItemGroup>
+
+  <!-- Auto-harvest Python stems service -->
+  <ItemGroup>
+    <HarvestDirectory Include="..\services\python_stems">
+      <DirectoryRefId>StemsSvcDir</DirectoryRefId>
+      <ComponentGroupName>StemmsSvcFiles</ComponentGroupName>
+      <SuppressCom>true</SuppressCom>
+      <SuppressRegistry>true</SuppressRegistry>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+      <Exclude>**\__pycache__\**;**\*.pyc;**\venv\**</Exclude>
+    </HarvestDirectory>
+  </ItemGroup>
+
+  <!-- Auto-harvest Python mix service -->
+  <ItemGroup>
+    <HarvestDirectory Include="..\services\python_mix">
+      <DirectoryRefId>MixSvcDir</DirectoryRefId>
+      <ComponentGroupName>MixSvcFiles</ComponentGroupName>
+      <SuppressCom>true</SuppressCom>
+      <SuppressRegistry>true</SuppressRegistry>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+      <Exclude>**\__pycache__\**;**\*.pyc;**\venv\**</Exclude>
+    </HarvestDirectory>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+
+</Project>

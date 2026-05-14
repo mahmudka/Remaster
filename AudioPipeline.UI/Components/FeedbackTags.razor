@@ -1,0 +1,41 @@
+@foreach (var tag in AllTags)
+{
+    var t = tag;
+    bool active = Selected.Contains(t.Key);
+    <MudChip T="string" Color="@(active ? Color.Primary : Color.Default)"
+             Variant="@(active ? Variant.Filled : Variant.Outlined)"
+             OnClick="@(() => Toggle(t.Key))"
+             Class="mr-1 mb-1">
+        @t.Label
+    </MudChip>
+}
+
+@code {
+    [Parameter] public List<string> Selected { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> SelectedChanged { get; set; }
+
+    record TagDef(string Key, string Label);
+
+    static readonly TagDef[] AllTags =
+    {
+        new("bass_too_loud",    "Бас громкий"),
+        new("bass_too_quiet",   "Бас тихий"),
+        new("vocal_too_loud",   "Вокал громкий"),
+        new("vocal_too_quiet",  "Вокал тихий"),
+        new("too_bright",       "Слишком ярко"),
+        new("too_dark",         "Слишком темно"),
+        new("too_compressed",   "Перекомпрессия"),
+        new("too_loud",         "Слишком громко"),
+        new("drums_weak",       "Барабаны слабые"),
+        new("muddy_mids",       "Мутные средние"),
+        new("harsh_highs",      "Резкие верха"),
+        new("no_stereo_width",  "Узкая стерео база"),
+    };
+
+    async Task Toggle(string key)
+    {
+        if (Selected.Contains(key)) Selected.Remove(key);
+        else Selected.Add(key);
+        await SelectedChanged.InvokeAsync(new List<string>(Selected));
+    }
+}

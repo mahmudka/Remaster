@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <DirectoryRef Id="StemsSvcDir">
+      <Component Id="C_Stems_0182" Guid="{3CCDAFA3-97E4-491E-8F13-1F5EBD301D15}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0181" Source="C:\Claude\Remaster\services\python_stems\analyze.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Stems_0184" Guid="{5A46FB6D-7C0D-4746-8CDB-E9C1918A9315}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0183" Source="C:\Claude\Remaster\services\python_stems\audio_io.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Stems_0186" Guid="{7B4F8DDA-F097-4C91-8A35-38AAB30E67E0}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0185" Source="C:\Claude\Remaster\services\python_stems\db.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Stems_0188" Guid="{94FE4E9A-3BBB-42EB-A789-2355FC2F5C06}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0187" Source="C:\Claude\Remaster\services\python_stems\main.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Stems_0190" Guid="{CA182260-144D-4018-ACE4-3508BDDF4F6F}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0189" Source="C:\Claude\Remaster\services\python_stems\midi.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Stems_0192" Guid="{8129DAAC-AE71-4ABE-A504-03B68FDC5B8C}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0191" Source="C:\Claude\Remaster\services\python_stems\requirements.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Stems_0194" Guid="{CDD30B72-D1E1-4010-8515-599664F2B19F}" Directory="StemsSvcDir">
+        <File Id="F_Stems_0193" Source="C:\Claude\Remaster\services\python_stems\stems.py" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="MixSvcDir">
+      <Component Id="C_Mix_0196" Guid="{CEFCB800-4B48-45E9-BCBF-B7846F673085}" Directory="MixSvcDir">
+        <File Id="F_Mix_0195" Source="C:\Claude\Remaster\services\python_mix\audio_io.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0198" Guid="{510D648E-1227-461C-B291-C0BB70D47828}" Directory="MixSvcDir">
+        <File Id="F_Mix_0197" Source="C:\Claude\Remaster\services\python_mix\book_parser.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0200" Guid="{598419AE-BEA4-48D5-85F7-F293B602AD2E}" Directory="MixSvcDir">
+        <File Id="F_Mix_0199" Source="C:\Claude\Remaster\services\python_mix\db.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0202" Guid="{0AA98A12-AFEC-4275-A8C7-15E3C526BBAE}" Directory="MixSvcDir">
+        <File Id="F_Mix_0201" Source="C:\Claude\Remaster\services\python_mix\knowledge_service.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0204" Guid="{DD0966EC-8F90-42AB-ABDE-C122C18A868F}" Directory="MixSvcDir">
+        <File Id="F_Mix_0203" Source="C:\Claude\Remaster\services\python_mix\learning_engine.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0206" Guid="{3642780D-F5F6-4BB7-8E72-3E644C9D1200}" Directory="MixSvcDir">
+        <File Id="F_Mix_0205" Source="C:\Claude\Remaster\services\python_mix\main.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0208" Guid="{0BE028A0-03C9-44CC-B633-00838A69E07C}" Directory="MixSvcDir">
+        <File Id="F_Mix_0207" Source="C:\Claude\Remaster\services\python_mix\master_engine.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0210" Guid="{9001D076-D37E-41E6-9DC5-928C55824956}" Directory="MixSvcDir">
+        <File Id="F_Mix_0209" Source="C:\Claude\Remaster\services\python_mix\mix_engine.py" KeyPath="yes" />
+      </Component>
+      <Component Id="C_Mix_0212" Guid="{8ED8B39D-563D-447C-BF4C-8658ABD8377E}" Directory="MixSvcDir">
+        <File Id="F_Mix_0211" Source="C:\Claude\Remaster\services\python_mix\requirements.txt" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <DirectoryRef Id="VstSvcDir">
+      <Component Id="C_VstStub" Guid="{A4137A74-BCF9-45B3-ABDE-4AD59734E04D}" Directory="VstSvcDir">
+        <File Id="F_VstStub" Source="C:\Claude\Remaster\services\cpp_vst\stub_server.py" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    <ComponentGroup Id="SvcFiles">
+      <ComponentRef Id="C_Stems_0182" />
+      <ComponentRef Id="C_Stems_0184" />
+      <ComponentRef Id="C_Stems_0186" />
+      <ComponentRef Id="C_Stems_0188" />
+      <ComponentRef Id="C_Stems_0190" />
+      <ComponentRef Id="C_Stems_0192" />
+      <ComponentRef Id="C_Stems_0194" />
+      <ComponentRef Id="C_Mix_0196" />
+      <ComponentRef Id="C_Mix_0198" />
+      <ComponentRef Id="C_Mix_0200" />
+      <ComponentRef Id="C_Mix_0202" />
+      <ComponentRef Id="C_Mix_0204" />
+      <ComponentRef Id="C_Mix_0206" />
+      <ComponentRef Id="C_Mix_0208" />
+      <ComponentRef Id="C_Mix_0210" />
+      <ComponentRef Id="C_Mix_0212" />
+      <ComponentRef Id="C_VstStub" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
+

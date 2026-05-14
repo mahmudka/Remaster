@@ -1,0 +1,370 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <DirectoryRef Id="APPLICATIONFOLDER">
+      <Component Id="C_App_0002" Guid="{43B0E879-E4C8-444B-BC29-EFD35AAF1836}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0001" Source="C:\Claude\Remaster\publish\dotnet\Anthropic.SDK.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0004" Guid="{6257C19B-7DFE-4A87-AE3F-95B848C35E9A}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0003" Source="C:\Claude\Remaster\publish\dotnet\appsettings.Development.json" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0006" Guid="{EEC2CB4C-734F-4189-B79C-4C77F3587A34}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0005" Source="C:\Claude\Remaster\publish\dotnet\appsettings.json" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0008" Guid="{F1FB1FC7-42C7-4429-965D-E515FB0AA439}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0007" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.Shared.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0010" Guid="{CF1CA489-142F-4168-A218-F71136F83F72}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0009" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.Shared.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0012" Guid="{34942208-5A70-4EF7-982C-0AC63F575CB1}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0011" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.UI.deps.json" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0014" Guid="{36528471-B5C0-4D93-A8FA-94CB32992615}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0013" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.UI.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0016" Guid="{81994FAC-84F9-45F1-9D0F-6CE730AFE53A}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0015" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.UI.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0018" Guid="{2EBABC8E-4432-4138-B0FD-9FCBB2B49004}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0017" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.UI.pdb" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0020" Guid="{66E10DB8-5B99-4EA0-81E6-F24634FC3719}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0019" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.UI.runtimeconfig.json" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0022" Guid="{F081DC24-65D3-402F-A752-368F043FE7B1}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0021" Source="C:\Claude\Remaster\publish\dotnet\AudioPipeline.UI.staticwebassets.endpoints.json" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0024" Guid="{00789ABF-EED0-4570-BDF0-760E4B732E1A}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0023" Source="C:\Claude\Remaster\publish\dotnet\Azure.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0026" Guid="{23485888-E47B-4EC1-93D0-15C1FD127083}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0025" Source="C:\Claude\Remaster\publish\dotnet\Azure.Identity.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0028" Guid="{FDF3DAD5-C611-4A28-BBC2-D72562EF55BF}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0027" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.Authorization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0030" Guid="{00BE1FCE-D43C-40B2-B95F-A2430F85ABFA}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0029" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.Components.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0032" Guid="{9B22B047-E5B5-43D8-97FC-006DB64FBF21}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0031" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.Components.Forms.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0034" Guid="{9F6554D9-B6E0-49F6-A8AB-974F934B5177}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0033" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.Components.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0036" Guid="{9189A438-9BC6-4456-8580-72EF2A01623A}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0035" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.Http.Connections.Client.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0038" Guid="{CCD0BFE4-897A-4847-BD87-478DCBE92B9B}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0037" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.Metadata.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0040" Guid="{DCEAC8BA-F7BC-4060-86DF-03E7FAC7F942}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0039" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.SignalR.Client.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0042" Guid="{A5BE34E8-220B-439E-A41A-CD2C1B89EFBC}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0041" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.AspNetCore.SignalR.Client.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0044" Guid="{DAFDA93D-4F82-4768-906C-518B533F20B8}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0043" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0046" Guid="{4461F85B-B8FC-407B-90E4-B96E4010F14B}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0045" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Data.SqlClient.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0048" Guid="{BFFABBEA-DC84-44D2-9377-9881FF532E38}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0047" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.EntityFrameworkCore.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0050" Guid="{C01001E4-AE74-4173-9437-E75474B76522}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0049" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.EntityFrameworkCore.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0052" Guid="{7BABA87B-777F-4857-AE50-07B3E198C8CF}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0051" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.EntityFrameworkCore.Relational.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0054" Guid="{4F607A2B-B069-454F-81FE-D16C3EE84B61}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0053" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.EntityFrameworkCore.SqlServer.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0056" Guid="{6878791D-B106-4D32-A536-F6F808FC06D7}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0055" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.AI.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0058" Guid="{5B5DFF77-9495-4D00-8046-9B132AB791EF}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0057" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.DependencyInjection.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0060" Guid="{0CFBFFD7-57DD-40AE-90D0-9926BD51AC1C}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0059" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.DependencyInjection.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0062" Guid="{8FEF183C-191E-425B-9160-F4BFE6FDC0C2}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0061" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.Localization.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0064" Guid="{467B7A83-0FFB-4B10-BE4C-B4373B3A8ACB}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0063" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.Localization.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0066" Guid="{25FB5383-88EC-47F6-81B0-97E41471D20C}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0065" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.Logging.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0068" Guid="{4D05782C-CB16-44C4-A040-A415806C09EE}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0067" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Extensions.Options.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0070" Guid="{779C1159-3242-4EF4-8985-EFC3C09B15EC}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0069" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Identity.Client.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0072" Guid="{722C00A6-0892-4455-89D6-76FA4768747F}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0071" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Identity.Client.Extensions.Msal.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0074" Guid="{1F5EFD18-C1E0-4B3B-B7D1-146B4488B09E}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0073" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.IdentityModel.Abstractions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0076" Guid="{D71AF85B-84A2-42B5-9AEC-5FAFA157CEDC}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0075" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.IdentityModel.JsonWebTokens.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0078" Guid="{85AD9461-5EEE-4ADF-A9E6-C77D73A5CBCE}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0077" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.IdentityModel.Logging.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0080" Guid="{F3515F49-1A88-4EDD-BDDF-1C020E86BCED}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0079" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.IdentityModel.Protocols.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0082" Guid="{9976D135-26A6-43D9-9365-4B9F948EC276}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0081" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0084" Guid="{DB37F02A-4E70-419F-B40E-25EE4317F6B3}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0083" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.IdentityModel.Tokens.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0086" Guid="{69A716C2-9EB9-467A-B0A9-DCE7158B2091}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0085" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.JSInterop.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0088" Guid="{790FEAA9-BE2F-4417-B5CF-AF31622125D4}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0087" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.SqlServer.Server.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0090" Guid="{C23B9556-CF3C-471D-8D7A-8B44AE31B1B4}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0089" Source="C:\Claude\Remaster\publish\dotnet\Microsoft.Win32.SystemEvents.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0092" Guid="{F229D9E5-4EA3-449B-93A5-BCBAC58EF528}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0091" Source="C:\Claude\Remaster\publish\dotnet\MudBlazor.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0094" Guid="{BBB95706-9F02-4F73-B655-F451D37DB134}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0093" Source="C:\Claude\Remaster\publish\dotnet\System.Configuration.ConfigurationManager.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0096" Guid="{5CDD84F0-CD37-43C4-8112-032AE29F4C25}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0095" Source="C:\Claude\Remaster\publish\dotnet\System.Drawing.Common.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0098" Guid="{02928655-C37A-43B4-94C1-75229890E1B1}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0097" Source="C:\Claude\Remaster\publish\dotnet\System.IdentityModel.Tokens.Jwt.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0100" Guid="{0EEDEA14-F7C2-43CB-BD0E-D00EAB6BDF0C}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0099" Source="C:\Claude\Remaster\publish\dotnet\System.IO.Pipelines.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0102" Guid="{29A03262-BB1D-456A-96B3-8208A0F27EE9}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0101" Source="C:\Claude\Remaster\publish\dotnet\System.Memory.Data.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0104" Guid="{AA48EDF1-EA12-4B5F-95A9-F6DBE0CEC92C}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0103" Source="C:\Claude\Remaster\publish\dotnet\System.Runtime.Caching.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0106" Guid="{03A4AC9C-F2BE-403D-9616-C5D51F6A703D}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0105" Source="C:\Claude\Remaster\publish\dotnet\System.Security.Cryptography.ProtectedData.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0108" Guid="{C9AC92BD-0832-4877-83E9-8375D8829854}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0107" Source="C:\Claude\Remaster\publish\dotnet\System.Security.Permissions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0110" Guid="{C62543F1-2B44-4C64-BFD4-ED8DD075457E}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0109" Source="C:\Claude\Remaster\publish\dotnet\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0112" Guid="{84182AEC-FBF9-4847-92DD-1F05085777DA}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0111" Source="C:\Claude\Remaster\publish\dotnet\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0114" Guid="{0146D004-6D4B-44C2-B935-337A096ADF08}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0113" Source="C:\Claude\Remaster\publish\dotnet\System.Windows.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="C_App_0116" Guid="{C58950AA-D130-4CC9-9506-E3C369C7A224}" Directory="APPLICATIONFOLDER">
+        <File Id="F_App_0115" Source="C:\Claude\Remaster\publish\dotnet\web.config" KeyPath="yes" />
+      </Component>
+      <Directory Id="Dir_App_0117" Name="runtimes">
+        <Directory Id="Dir_App_0118" Name="browser">
+          <Directory Id="Dir_App_0119" Name="lib">
+            <Directory Id="Dir_App_0120" Name="net8.0">
+              <Component Id="C_App_0122" Guid="{C1A41DDA-2F61-450C-9F81-B94509F2232E}" Directory="Dir_App_0120">
+                <File Id="F_App_0121" Source="C:\Claude\Remaster\publish\dotnet\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll" KeyPath="yes" />
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+        <Directory Id="Dir_App_0123" Name="unix">
+          <Directory Id="Dir_App_0124" Name="lib">
+            <Directory Id="Dir_App_0125" Name="net6.0">
+              <Component Id="C_App_0127" Guid="{A126C9FC-A138-4BE0-8634-DE5F6CF6BF63}" Directory="Dir_App_0125">
+                <File Id="F_App_0126" Source="C:\Claude\Remaster\publish\dotnet\runtimes\unix\lib\net6.0\Microsoft.Data.SqlClient.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="C_App_0129" Guid="{7849C022-D694-4933-BAB7-35EB82B2A3C6}" Directory="Dir_App_0125">
+                <File Id="F_App_0128" Source="C:\Claude\Remaster\publish\dotnet\runtimes\unix\lib\net6.0\System.Drawing.Common.dll" KeyPath="yes" />
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+        <Directory Id="Dir_App_0130" Name="win">
+          <Directory Id="Dir_App_0131" Name="lib">
+            <Directory Id="Dir_App_0132" Name="net6.0">
+              <Component Id="C_App_0134" Guid="{E4C0BD3E-D0E5-4F4F-B02D-384A213F9FBE}" Directory="Dir_App_0132">
+                <File Id="F_App_0133" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win\lib\net6.0\Microsoft.Data.SqlClient.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="C_App_0136" Guid="{36B14EB4-7F18-402E-B573-21CFD598FA7E}" Directory="Dir_App_0132">
+                <File Id="F_App_0135" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="C_App_0138" Guid="{79D8016A-2CBF-43E8-B441-AC3A59B2DCF5}" Directory="Dir_App_0132">
+                <File Id="F_App_0137" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win\lib\net6.0\System.Drawing.Common.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="C_App_0140" Guid="{222497CE-4D1B-4BA0-83B0-929F0BD892A7}" Directory="Dir_App_0132">
+                <File Id="F_App_0139" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win\lib\net6.0\System.Runtime.Caching.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="C_App_0142" Guid="{D9FFCC40-934F-40F9-9DC4-14F9393B62D6}" Directory="Dir_App_0132">
+                <File Id="F_App_0141" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll" KeyPath="yes" />
+              </Component>
+              <Component Id="C_App_0144" Guid="{87D1C21E-174F-4E97-9AD4-7E7FF4FEAFC5}" Directory="Dir_App_0132">
+                <File Id="F_App_0143" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win\lib\net6.0\System.Windows.Extensions.dll" KeyPath="yes" />
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+        <Directory Id="Dir_App_0145" Name="win-arm">
+          <Directory Id="Dir_App_0146" Name="native">
+            <Component Id="C_App_0148" Guid="{B2ED4058-F985-45FE-96E3-7AF2E1AB9294}" Directory="Dir_App_0146">
+              <File Id="F_App_0147" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="Dir_App_0149" Name="win-arm64">
+          <Directory Id="Dir_App_0150" Name="native">
+            <Component Id="C_App_0152" Guid="{36506EAD-FB8A-4688-A56F-B78EC8FFAD71}" Directory="Dir_App_0150">
+              <File Id="F_App_0151" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="Dir_App_0153" Name="win-x64">
+          <Directory Id="Dir_App_0154" Name="native">
+            <Component Id="C_App_0156" Guid="{7858D6B8-22F6-49A2-9B96-40DCF586484D}" Directory="Dir_App_0154">
+              <File Id="F_App_0155" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="Dir_App_0157" Name="win-x86">
+          <Directory Id="Dir_App_0158" Name="native">
+            <Component Id="C_App_0160" Guid="{FC630368-2A15-4DAD-B79B-7EC71385DC87}" Directory="Dir_App_0158">
+              <File Id="F_App_0159" Source="C:\Claude\Remaster\publish\dotnet\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="Dir_App_0161" Name="wwwroot">
+        <Component Id="C_App_0163" Guid="{51CC0682-E318-4417-9EA2-F1C93964BC7D}" Directory="Dir_App_0161">
+          <File Id="F_App_0162" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\app.css" KeyPath="yes" />
+        </Component>
+        <Component Id="C_App_0165" Guid="{79C1C8CD-259D-4F62-BA9B-D5801F059C5A}" Directory="Dir_App_0161">
+          <File Id="F_App_0164" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\AudioPipeline.UI.styles.css" KeyPath="yes" />
+        </Component>
+        <Component Id="C_App_0167" Guid="{3EC1A4B8-5B73-4D15-A318-4ED18BC191AA}" Directory="Dir_App_0161">
+          <File Id="F_App_0166" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\favicon.png" KeyPath="yes" />
+        </Component>
+        <Directory Id="Dir_App_0168" Name="bootstrap">
+          <Component Id="C_App_0170" Guid="{7FCC3C2F-99AE-4BE1-ADCF-FA7A60363D85}" Directory="Dir_App_0168">
+            <File Id="F_App_0169" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\bootstrap\bootstrap.min.css" KeyPath="yes" />
+          </Component>
+          <Component Id="C_App_0172" Guid="{BF47A61C-B4B0-4932-B6EE-0DE77F3E16E4}" Directory="Dir_App_0168">
+            <File Id="F_App_0171" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\bootstrap\bootstrap.min.css.map" KeyPath="yes" />
+          </Component>
+        </Directory>
+        <Directory Id="Dir_App_0173" Name="_content">
+          <Directory Id="Dir_App_0174" Name="MudBlazor">
+            <Component Id="C_App_0176" Guid="{F1CC69C3-E2B3-458A-A17C-428683DE5CD7}" Directory="Dir_App_0174">
+              <File Id="F_App_0175" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\_content\MudBlazor\MudBlazor.min.css" KeyPath="yes" />
+            </Component>
+            <Component Id="C_App_0178" Guid="{4F07C0F0-3AA0-47BD-A6D8-45DE596799EC}" Directory="Dir_App_0174">
+              <File Id="F_App_0177" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\_content\MudBlazor\MudBlazor.min.js" KeyPath="yes" />
+            </Component>
+            <Component Id="C_App_0180" Guid="{D05E5A70-BCDF-469F-9F01-BC434B661DC1}" Directory="Dir_App_0174">
+              <File Id="F_App_0179" Source="C:\Claude\Remaster\publish\dotnet\wwwroot\_content\MudBlazor\MudBlazor.min.js.map" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+    <ComponentGroup Id="AppFiles">
+      <ComponentRef Id="C_App_0002" />
+      <ComponentRef Id="C_App_0004" />
+      <ComponentRef Id="C_App_0006" />
+      <ComponentRef Id="C_App_0008" />
+      <ComponentRef Id="C_App_0010" />
+      <ComponentRef Id="C_App_0012" />
+      <ComponentRef Id="C_App_0014" />
+      <ComponentRef Id="C_App_0016" />
+      <ComponentRef Id="C_App_0018" />
+      <ComponentRef Id="C_App_0020" />
+      <ComponentRef Id="C_App_0022" />
+      <ComponentRef Id="C_App_0024" />
+      <ComponentRef Id="C_App_0026" />
+      <ComponentRef Id="C_App_0028" />
+      <ComponentRef Id="C_App_0030" />
+      <ComponentRef Id="C_App_0032" />
+      <ComponentRef Id="C_App_0034" />
+      <ComponentRef Id="C_App_0036" />
+      <ComponentRef Id="C_App_0038" />
+      <ComponentRef Id="C_App_0040" />
+      <ComponentRef Id="C_App_0042" />
+      <ComponentRef Id="C_App_0044" />
+      <ComponentRef Id="C_App_0046" />
+      <ComponentRef Id="C_App_0048" />
+      <ComponentRef Id="C_App_0050" />
+      <ComponentRef Id="C_App_0052" />
+      <ComponentRef Id="C_App_0054" />
+      <ComponentRef Id="C_App_0056" />
+      <ComponentRef Id="C_App_0058" />
+      <ComponentRef Id="C_App_0060" />
+      <ComponentRef Id="C_App_0062" />
+      <ComponentRef Id="C_App_0064" />
+      <ComponentRef Id="C_App_0066" />
+      <ComponentRef Id="C_App_0068" />
+      <ComponentRef Id="C_App_0070" />
+      <ComponentRef Id="C_App_0072" />
+      <ComponentRef Id="C_App_0074" />
+      <ComponentRef Id="C_App_0076" />
+      <ComponentRef Id="C_App_0078" />
+      <ComponentRef Id="C_App_0080" />
+      <ComponentRef Id="C_App_0082" />
+      <ComponentRef Id="C_App_0084" />
+      <ComponentRef Id="C_App_0086" />
+      <ComponentRef Id="C_App_0088" />
+      <ComponentRef Id="C_App_0090" />
+      <ComponentRef Id="C_App_0092" />
+      <ComponentRef Id="C_App_0094" />
+      <ComponentRef Id="C_App_0096" />
+      <ComponentRef Id="C_App_0098" />
+      <ComponentRef Id="C_App_0100" />
+      <ComponentRef Id="C_App_0102" />
+      <ComponentRef Id="C_App_0104" />
+      <ComponentRef Id="C_App_0106" />
+      <ComponentRef Id="C_App_0108" />
+      <ComponentRef Id="C_App_0110" />
+      <ComponentRef Id="C_App_0112" />
+      <ComponentRef Id="C_App_0114" />
+      <ComponentRef Id="C_App_0116" />
+      <ComponentRef Id="C_App_0122" />
+      <ComponentRef Id="C_App_0127" />
+      <ComponentRef Id="C_App_0129" />
+      <ComponentRef Id="C_App_0134" />
+      <ComponentRef Id="C_App_0136" />
+      <ComponentRef Id="C_App_0138" />
+      <ComponentRef Id="C_App_0140" />
+      <ComponentRef Id="C_App_0142" />
+      <ComponentRef Id="C_App_0144" />
+      <ComponentRef Id="C_App_0148" />
+      <ComponentRef Id="C_App_0152" />
+      <ComponentRef Id="C_App_0156" />
+      <ComponentRef Id="C_App_0160" />
+      <ComponentRef Id="C_App_0163" />
+      <ComponentRef Id="C_App_0165" />
+      <ComponentRef Id="C_App_0167" />
+      <ComponentRef Id="C_App_0170" />
+      <ComponentRef Id="C_App_0172" />
+      <ComponentRef Id="C_App_0176" />
+      <ComponentRef Id="C_App_0178" />
+      <ComponentRef Id="C_App_0180" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
+

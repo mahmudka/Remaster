@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+scipy
+numpy
+scikit-learn
+pyodbc
+PyMuPDF
+anthropic
+python-multipart
+pedalboard

@@ -1,0 +1,72 @@
+@page "/progress/{JobId}"
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@inject NavigationManager Nav
+@inject SignalRService SignalR
+
+<PageTitle>Обработка — @JobId</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-3">Обработка трека</MudText>
+<MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Job: @JobId</MudText>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.subtitle1" Class="mb-2">@CurrentBlock</MudText>
+            <MudProgressLinear Value="@ProgressValue" Color="Color.Primary" Class="mb-2" />
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@ProgressValue% завершено</MudText>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Class="pa-4" Style="max-height:400px; overflow-y:auto;">
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Лог</MudText>
+            <ProgressLog Entries="@LogEntries" />
+        </MudPaper>
+    </MudItem>
+
+    @if (IsDone)
+    {
+        <MudItem xs="12">
+            <MudButton Variant="Variant.Filled" Color="Color.Success"
+                       StartIcon="@Icons.Material.Filled.CheckCircle"
+                       OnClick="@(() => Nav.NavigateTo($"/result/{JobId}"))">
+                Смотреть результат
+            </MudButton>
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    [Parameter] public string JobId { get; set; } = "";
+
+    int    ProgressValue = 0;
+    string CurrentBlock  = "Подключение...";
+    bool   IsDone        = false;
+
+    List<ProgressLog.LogEntry> LogEntries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SignalR.OnProgress += OnProgressReceived;
+        await SignalR.ConnectAsync();
+        await SignalR.JoinJobAsync(JobId);
+    }
+
+    void OnProgressReceived(AudioPipeline.Shared.DTOs.ProgressDto dto)
+    {
+        LogEntries.Add(new(dto.Block, dto.Status, dto.Message, dto.Timestamp));
+        ProgressValue = dto.ProgressPercent;
+        CurrentBlock  = $"{dto.Block} — {dto.Message}";
+        if (dto.Status == "done" && dto.ProgressPercent >= 100)
+            IsDone = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        SignalR.OnProgress -= OnProgressReceived;
+        await SignalR.LeaveJobAsync(JobId);
+        await SignalR.DisposeAsync();
+    }
+}

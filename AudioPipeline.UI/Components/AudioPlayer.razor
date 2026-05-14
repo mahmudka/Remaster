@@ -1,0 +1,33 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div class="audio-player">
+    @if (FilePath is not null && System.IO.File.Exists(FilePath))
+    {
+        <audio controls style="width:100%" @ref="_audio">
+            <source src="@AudioUrl" type="audio/wav" />
+            Браузер не поддерживает HTML5 audio.
+        </audio>
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+            @System.IO.Path.GetFileName(FilePath)
+        </MudText>
+    }
+    else if (FilePath is not null)
+    {
+        <MudAlert Severity="Severity.Warning">Файл не найден: @FilePath</MudAlert>
+    }
+    else
+    {
+        <MudText Color="Color.Secondary">Нет аудио файла</MudText>
+    }
+</div>
+
+@code {
+    [Parameter] public string? FilePath { get; set; }
+
+    ElementReference _audio;
+
+    string? AudioUrl => FilePath is not null
+        ? $"/audio?path={Uri.EscapeDataString(FilePath)}"
+        : null;
+}

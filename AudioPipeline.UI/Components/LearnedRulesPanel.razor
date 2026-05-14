@@ -1,0 +1,53 @@
+@using AudioPipeline.Shared.Models
+
+<MudText Typo="Typo.subtitle1" Class="mb-3">Выученные правила — @Genre</MudText>
+
+@if (!Rules.Any())
+{
+    <MudAlert Severity="Severity.Info">
+        Правила появятся после 3+ высокооценённых сессий жанра «@Genre».
+    </MudAlert>
+}
+else
+{
+    <MudTable Items="@Rules" Dense="true" Hover="true" SortLabel="Sort">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<LearnedRule,object>(r=>r.Parameter)">Параметр</MudTableSortLabel></MudTh>
+            <MudTh>Значение</MudTh>
+            <MudTh>Уверенность</MudTh>
+            <MudTh>Образцов</MudTh>
+            <MudTh>Обновлено</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudText Typo="Typo.body2">@context.Parameter</MudText>
+            </MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                    @context.Value @context.Unit
+                </MudChip>
+            </MudTd>
+            <MudTd Style="min-width:160px">
+                <MudTooltip Text="@($"{context.Confidence:P0}")">
+                    <MudProgressLinear Value="@((int)(context.Confidence * 100))"
+                                       Color="@ConfColor(context.Confidence)"
+                                       Rounded="true" Size="Size.Small" />
+                </MudTooltip>
+            </MudTd>
+            <MudTd>@context.SampleCount</MudTd>
+            <MudTd>@context.UpdatedAt.ToString("dd.MM.yy")</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Genre    { get; set; } = "";
+    [Parameter, EditorRequired] public List<LearnedRule> Rules { get; set; } = new();
+
+    static Color ConfColor(double conf) => conf switch
+    {
+        >= 0.7 => Color.Success,
+        >= 0.4 => Color.Warning,
+        _      => Color.Error,
+    };
+}

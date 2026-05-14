@@ -1,0 +1,97 @@
+@page "/result/{JobId}"
+@rendermode InteractiveServer
+@inject PipelineService PipelineService
+@inject ISnackbar Snackbar
+
+<PageTitle>Результат</PageTitle>
+
+@if (_session is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudText Typo="Typo.h5" Class="mb-4">Результат обработки</MudText>
+
+    <MudGrid>
+        <!-- Audio player -->
+        <MudItem xs="12" md="8">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Мастер</MudText>
+                <AudioPlayer FilePath="@MasterPath" />
+
+                @if (OriginalPath is not null)
+                {
+                    <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Оригинал</MudText>
+                    <AudioPlayer FilePath="@OriginalPath" />
+                }
+            </MudPaper>
+        </MudItem>
+
+        <!-- Rating & feedback -->
+        <MudItem xs="12" md="4">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.subtitle1" Class="mb-3">Оценка</MudText>
+                <StarRating @bind-Value="Rating" />
+
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Проблемы</MudText>
+                <FeedbackTags @bind-Selected="SelectedTags" />
+
+                <MudTextField @bind-Value="Note" Label="Комментарий" Lines="3"
+                              Class="mt-3" Variant="Variant.Outlined" />
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                           Class="mt-3" FullWidth="true"
+                           Disabled="@(Rating == 0)"
+                           OnClick="SubmitFeedback">
+                    Сохранить оценку
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+
+        <!-- Session info -->
+        <MudItem xs="12">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Детали сессии</MudText>
+                <MudGrid>
+                    <MudItem xs="4"><MudText><b>BPM:</b> @_session.Bpm?.ToString("F1")</MudText></MudItem>
+                    <MudItem xs="4"><MudText><b>Тональность:</b> @_session.Key</MudText></MudItem>
+                    <MudItem xs="4"><MudText><b>Жанр:</b> @_session.Genre</MudText></MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public string JobId { get; set; } = "";
+
+    AudioPipeline.Shared.Models.MixSession? _session;
+    string? MasterPath;
+    string? OriginalPath;
+
+    int          Rating       = 0;
+    List<string> SelectedTags = new();
+    string       Note         = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _session   = await PipelineService.GetSessionAsync(JobId);
+        // Try master.wav first, then fallback name
+        if (_session?.OutputPath is not null)
+        {
+            var wav = System.IO.Path.Combine(_session.OutputPath, "master.wav");
+            MasterPath = File.Exists(wav) ? wav
+                : System.IO.Path.Combine(_session.OutputPath, "master_iter3.wav");
+        }
+    }
+
+    async Task SubmitFeedback()
+    {
+        if (_session is null) return;
+        await PipelineService.SubmitFeedbackAsync(_session.Id, Rating, SelectedTags, Note);
+        Snackbar.Add("Оценка сохранена!", Severity.Success);
+    }
+}
