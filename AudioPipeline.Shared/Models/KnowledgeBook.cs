@@ -26,6 +26,5 @@ public class KnowledgeBook
     public int TotalChunks { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public ICollection<BookChunk> Chunks { get; set; } = new List<BookChunk>();
     public ICollection<KnowledgeRule> Rules { get; set; } = new List<KnowledgeRule>();
 }

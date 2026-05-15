@@ -95,8 +95,7 @@
 
         try
         {
-            var selectedBlocks = Blocks.Where(b => b.Selected).Select(b => b.Name).ToList();
-            var jobId = await PipelineService.StartAsync(SelectedFile, ReferenceFile, selectedBlocks);
+            var jobId = await PipelineService.StartAsync(SelectedFile);
             Nav.NavigateTo($"/progress/{jobId}");
         }
         catch (Exception ex)

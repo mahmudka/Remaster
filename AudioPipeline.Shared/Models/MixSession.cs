@@ -26,19 +26,19 @@ public class MixSession
     [MaxLength(50)]
     public string? Key { get; set; }
 
-    public string? MixPlanJson { get; set; }
-
     [MaxLength(50)]
     public string Status { get; set; } = "Pending";
-
-    [MaxLength(500)]
-    public string? BlocksRun { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
 
-    public TrackDiagnosis? Diagnosis { get; set; }
-    public ICollection<ProcessingIteration> Iterations { get; set; } = new List<ProcessingIteration>();
-    public ICollection<SimilarityReport> SimilarityReports { get; set; } = new List<SimilarityReport>();
+    // v2 fields
+    public string? AnalysisBeforeJson  { get; set; }
+    public string? AnalysisAfterJson   { get; set; }
+    public string? PlanJson            { get; set; }
+
+    [MaxLength(1000)]
+    public string? ProblemsDetected    { get; set; }
+
     public ICollection<UserFeedback> Feedbacks { get; set; } = new List<UserFeedback>();
 }

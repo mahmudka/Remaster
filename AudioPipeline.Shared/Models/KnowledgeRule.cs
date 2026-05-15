@@ -32,6 +32,9 @@ public class KnowledgeRule
     public int Priority { get; set; } = 1;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [MaxLength(500)]
+    public string? Tags { get; set; }  // JSON: ["muddy_lowmid","over_compressed"]
+
     [ForeignKey(nameof(BookId))]
     public KnowledgeBook Book { get; set; } = null!;
 }

@@ -13,18 +13,6 @@ public class OrchestratorService
     private readonly IHubContext<ProgressHub> _hub;
     private readonly ILogger<OrchestratorService> _log;
 
-    // Ordered dependency chain
-    private static readonly Dictionary<PipelineBlock, PipelineBlock[]> Deps = new()
-    {
-        [PipelineBlock.Stems]     = new[] { PipelineBlock.Analysis },
-        [PipelineBlock.Knowledge] = new[] { PipelineBlock.Analysis },
-        [PipelineBlock.Midi]      = new[] { PipelineBlock.Stems },
-        [PipelineBlock.Vst]       = new[] { PipelineBlock.Midi },
-        [PipelineBlock.Rvc]       = new[] { PipelineBlock.Stems },
-        [PipelineBlock.Mix]       = new[] { PipelineBlock.Knowledge },
-        [PipelineBlock.Master]    = new[] { PipelineBlock.Mix },
-    };
-
     public OrchestratorService(
         IServiceScopeFactory scopes,
         IHubContext<ProgressHub> hub,
@@ -35,16 +23,11 @@ public class OrchestratorService
         _log    = log;
     }
 
-    public Task RunPipelineAsync(
-        string jobId, string inputFile, string outputPath,
-        string? referenceFile, List<string> selectedBlocks)
+    public Task RunPipelineAsync(string jobId, string inputFile, string outputPath, float targetLufs = -14f)
     {
         return Task.Run(async () =>
         {
-            try
-            {
-                await ExecuteAsync(jobId, inputFile, outputPath, referenceFile, selectedBlocks);
-            }
+            try   { await ExecuteAsync(jobId, inputFile, outputPath, targetLufs); }
             catch (Exception ex)
             {
                 _log.LogError(ex, "Pipeline failed for job {JobId}", jobId);
@@ -53,47 +36,37 @@ public class OrchestratorService
         });
     }
 
-    private async Task ExecuteAsync(
-        string jobId, string inputFile, string outputPath,
-        string? referenceFile, List<string> selectedBlockNames)
+    private async Task ExecuteAsync(string jobId, string inputFile, string outputPath, float targetLufs)
     {
         using var scope = _scopes.CreateScope();
         var sp = scope.ServiceProvider;
         var db = sp.GetRequiredService<AudioPipelineContext>();
 
-        // Load default RVC voice model if available
-        var defaultModel = await db.VoiceModels.FirstOrDefaultAsync(m => m.IsDefault);
-
         var ctx = new PipelineContext
         {
-            JobId        = jobId,
-            InputFile    = inputFile,
-            OutputPath   = outputPath,
-            ReferenceFile = referenceFile,
-            RvcModelPath = defaultModel?.ModelPath,
-            RvcIndexPath = defaultModel?.IndexPath,
+            JobId      = jobId,
+            InputFile  = inputFile,
+            OutputPath = outputPath,
+            TargetLufs = targetLufs,
         };
 
-        var selected = selectedBlockNames
-            .Select(n => Enum.TryParse<PipelineBlock>(n, out var e) ? (PipelineBlock?)e : null)
-            .Where(e => e.HasValue).Select(e => e!.Value).ToList();
+        IAgent[] pipeline =
+        [
+            sp.GetRequiredService<AnalysisAgent>(),
+            sp.GetRequiredService<PlanAgent>(),
+            sp.GetRequiredService<MasteringAgent>(),
+        ];
 
-        var ordered = ResolveDependencies(selected);
-        var agents  = BuildAgents(sp);
-
-        for (int i = 0; i < ordered.Count; i++)
+        for (int i = 0; i < pipeline.Length; i++)
         {
-            var block = ordered[i];
-            if (!agents.TryGetValue(block, out var agent)) continue;
-
-            var pct = i * 100 / ordered.Count;
+            var agent = pipeline[i];
+            var pct   = i * 100 / pipeline.Length;
             await PushAsync(jobId, agent.Name, "running", $"Запуск {agent.Name}...", pct);
 
             try
             {
                 ctx = await agent.RunAsync(ctx);
-                ctx.BlocksRun.Add(agent.Name);
-                pct = (i + 1) * 100 / ordered.Count;
+                pct = (i + 1) * 100 / pipeline.Length;
                 await PushAsync(jobId, agent.Name, "done", ctx.LastResult, pct);
             }
             catch (Exception ex)
@@ -101,18 +74,22 @@ public class OrchestratorService
                 ctx.Errors.Add($"{agent.Name}: {ex.Message}");
                 _log.LogError(ex, "Agent {Agent} failed", agent.Name);
                 await PushAsync(jobId, agent.Name, "error", ex.Message, pct);
+                break;
             }
         }
 
-        // Persist final session state
         var session = await db.MixSessions.FirstOrDefaultAsync(s => s.JobId == jobId);
         if (session is not null)
         {
-            session.Status      = ctx.Errors.Count == 0 ? "Done" : "Failed";
-            session.Genre       = ctx.Genre;
-            session.Bpm         = ctx.Bpm;
-            session.Key         = ctx.Key;
-            session.CompletedAt = DateTime.UtcNow;
+            session.Status             = ctx.Errors.Count == 0 ? "Done" : "Failed";
+            session.Genre              = ctx.Genre;
+            session.Bpm                = ctx.Bpm;
+            session.Key                = ctx.Key;
+            session.CompletedAt        = DateTime.UtcNow;
+            session.AnalysisBeforeJson = ctx.AnalysisJson;
+            session.AnalysisAfterJson  = ctx.AnalysisAfterJson;
+            session.PlanJson           = System.Text.Json.JsonSerializer.Serialize(ctx.Plan);
+            session.ProblemsDetected   = string.Join(",", ctx.ProblemTags);
             await db.SaveChangesAsync();
         }
 
@@ -131,35 +108,4 @@ public class OrchestratorService
             ProgressPercent = pct,
             Timestamp       = DateTime.UtcNow,
         });
-
-    private static List<PipelineBlock> ResolveDependencies(List<PipelineBlock> selected)
-    {
-        var resolved = new HashSet<PipelineBlock>();
-        var ordered  = new List<PipelineBlock>();
-
-        void Add(PipelineBlock block)
-        {
-            if (resolved.Contains(block)) return;
-            if (Deps.TryGetValue(block, out var deps))
-                foreach (var dep in deps) Add(dep);
-            resolved.Add(block);
-            ordered.Add(block);
-        }
-
-        foreach (var b in selected) Add(b);
-        return ordered;
-    }
-
-    private static Dictionary<PipelineBlock, IAgent> BuildAgents(IServiceProvider sp)
-        => new()
-        {
-            [PipelineBlock.Analysis]  = sp.GetRequiredService<AnalysisAgent>(),
-            [PipelineBlock.Stems]     = sp.GetRequiredService<StemsAgent>(),
-            [PipelineBlock.Midi]      = sp.GetRequiredService<MidiAgent>(),
-            [PipelineBlock.Vst]       = sp.GetRequiredService<VstAgent>(),
-            [PipelineBlock.Rvc]       = sp.GetRequiredService<RvcAgent>(),
-            [PipelineBlock.Knowledge] = sp.GetRequiredService<KnowledgeAgent>(),
-            [PipelineBlock.Mix]       = sp.GetRequiredService<MixAgent>(),
-            [PipelineBlock.Master]    = sp.GetRequiredService<MasterAgent>(),
-        };
 }

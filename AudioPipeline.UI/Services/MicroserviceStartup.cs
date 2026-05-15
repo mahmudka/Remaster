@@ -23,14 +23,8 @@ public class MicroserviceStartup : IHostedService
         }
 
         KillPortOwner(8001);
-        KillPortOwner(8002);
-        KillPortOwner(8003);
-        KillPortOwner(8004);
 
-        Launch("python_stems", "python -m uvicorn main:app --port 8001 --host 0.0.0.0");
-        Launch("python_mix",   "python -m uvicorn main:app --port 8002 --host 0.0.0.0");
-        Launch("python_rvc",   "python -m uvicorn main:app --port 8004 --host 0.0.0.0");
-        LaunchVstStub();
+        Launch("python_audio", "python -m uvicorn main:app --port 8001 --host 0.0.0.0");
 
         // Give services time to initialise
         await Task.Delay(3000, ct);
@@ -79,37 +73,6 @@ public class MicroserviceStartup : IHostedService
         catch (Exception ex)
         {
             _log.LogWarning("Failed to start {Service}: {Msg}", serviceDir, ex.Message);
-        }
-    }
-
-    private void LaunchVstStub()
-    {
-        var stubPath = Path.Combine(_servicesRoot, "cpp_vst", "stub_server.py");
-        if (!File.Exists(stubPath))
-        {
-            _log.LogWarning("VST stub not found: {Path}", stubPath);
-            return;
-        }
-
-        var psi = new ProcessStartInfo("python", $"\"{stubPath}\"")
-        {
-            WorkingDirectory = Path.GetDirectoryName(stubPath)!,
-            UseShellExecute  = false,
-            CreateNoWindow   = true,
-        };
-
-        try
-        {
-            var proc = Process.Start(psi);
-            if (proc is not null)
-            {
-                _procs.Add(proc);
-                _log.LogInformation("Started VST stub (pid {Pid})", proc.Id);
-            }
-        }
-        catch (Exception ex)
-        {
-            _log.LogWarning("Failed to start VST stub: {Msg}", ex.Message);
         }
     }
 

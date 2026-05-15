@@ -35,15 +35,10 @@ builder.Services.AddHttpClient(); // default factory for agents
 builder.Services.AddScoped<PipelineService>();
 builder.Services.AddScoped<SignalRService>();
 
-// Agents (scoped — get DB from scope inside OrchestratorService)
+// Agents
 builder.Services.AddScoped<AnalysisAgent>();
-builder.Services.AddScoped<StemsAgent>();
-builder.Services.AddScoped<MidiAgent>();
-builder.Services.AddScoped<VstAgent>();
-builder.Services.AddScoped<RvcAgent>();
-builder.Services.AddScoped<KnowledgeAgent>();
-builder.Services.AddScoped<MixAgent>();
-builder.Services.AddScoped<MasterAgent>();
+builder.Services.AddScoped<PlanAgent>();
+builder.Services.AddScoped<MasteringAgent>();
 
 // Orchestrator — singleton, manages background tasks
 builder.Services.AddSingleton<OrchestratorService>();
