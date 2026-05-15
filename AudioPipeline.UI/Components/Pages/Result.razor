@@ -24,7 +24,7 @@ else
 {
     <MudText Typo="Typo.h5" Class="mb-4">Результат обработки</MudText>
 
-    <MudGrid>
+<MudGrid>
         <!-- Audio players A/B -->
         <MudItem xs="12" md="8">
             <MudPaper Class="pa-4">
@@ -182,7 +182,8 @@ else
                 var d = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_session.AnalysisBeforeJson);
                 if (d is not null)
                     foreach (var kv in d)
-                        if (kv.Value.TryGetDouble(out var v)) _before[kv.Key] = v;
+                        if (kv.Value.ValueKind == JsonValueKind.Number && kv.Value.TryGetDouble(out var v))
+                            _before[kv.Key] = v;
             }
             catch { }
 
@@ -192,7 +193,8 @@ else
                 var d = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_session.AnalysisAfterJson);
                 if (d is not null)
                     foreach (var kv in d)
-                        if (kv.Value.TryGetDouble(out var v)) _after[kv.Key] = v;
+                        if (kv.Value.ValueKind == JsonValueKind.Number && kv.Value.TryGetDouble(out var v))
+                            _after[kv.Key] = v;
             }
             catch { }
 
