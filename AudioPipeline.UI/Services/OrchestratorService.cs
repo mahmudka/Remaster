@@ -66,7 +66,7 @@ public class OrchestratorService
             try
             {
                 ctx = await agent.RunAsync(ctx);
-                pct = (i + 1) * 100 / pipeline.Length;
+                pct = Math.Min((i + 1) * 100 / pipeline.Length, 99);
                 await PushAsync(jobId, agent.Name, "done", ctx.LastResult, pct);
             }
             catch (Exception ex)
