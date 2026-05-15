@@ -6,22 +6,53 @@
 
 <PageTitle>Обработка — @JobId</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-3">Обработка трека</MudText>
-<MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Job: @JobId</MudText>
+<MudGrid Spacing="4">
 
-<MudGrid>
+    <!-- Header -->
     <MudItem xs="12">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.subtitle1" Class="mb-2">@CurrentBlock</MudText>
-            <MudProgressLinear Value="@ProgressValue" Color="Color.Primary" Class="mb-2" />
-            <MudText Typo="Typo.body2" Color="Color.Secondary">@ProgressValue% завершено</MudText>
+        <MudText Typo="Typo.h5" Class="mb-1">Обработка трека</MudText>
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-family:monospace;">
+            job/@JobId
+        </MudText>
+    </MudItem>
+
+    <!-- Progress card -->
+    <MudItem xs="12" md="8">
+        <MudPaper Class="glass-card pa-5" Elevation="0">
+
+            <!-- Steps -->
+            <div style="display:flex; gap:32px; margin-bottom:28px;">
+                @foreach (var step in _steps)
+                {
+                    <div style="display:flex; align-items:center; gap:8px; opacity:@(step.Active ? "1" : "0.4");">
+                        <div class="step-dot @step.DotClass"></div>
+                        <MudText Typo="Typo.caption" Style="@(step.Active ? "color:#c4b5fd;" : "")">
+                            @step.Name
+                        </MudText>
+                    </div>
+                }
+            </div>
+
+            <!-- Current status -->
+            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="color:#e2e8f0;">
+                @CurrentBlock
+            </MudText>
+            <MudProgressLinear Value="@ProgressValue" Color="Color.Primary"
+                               Rounded="true" Size="Size.Medium" Class="mb-1" />
+            <MudText Typo="Typo.caption" Color="Color.Secondary">@ProgressValue%</MudText>
         </MudPaper>
     </MudItem>
 
-    <MudItem xs="12">
-        <MudPaper Class="pa-4" Style="max-height:400px; overflow-y:auto;">
-            <MudText Typo="Typo.subtitle2" Class="mb-2">Лог</MudText>
-            <ProgressLog Entries="@LogEntries" />
+    <!-- Log card -->
+    <MudItem xs="12" md="8">
+        <MudPaper Class="glass-card pa-4" Elevation="0">
+            <MudText Typo="Typo.overline"
+                     Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-3 d-block">
+                ЛОГ
+            </MudText>
+            <div class="log-box">
+                <ProgressLog Entries="@LogEntries" />
+            </div>
         </MudPaper>
     </MudItem>
 
@@ -29,12 +60,14 @@
     {
         <MudItem xs="12">
             <MudButton Variant="Variant.Filled" Color="Color.Success"
-                       StartIcon="@Icons.Material.Filled.CheckCircle"
+                       StartIcon="@Icons.Material.Filled.CheckCircleOutline"
+                       Style="border-radius:12px; font-weight:600;"
                        OnClick="@(() => Nav.NavigateTo($"/result/{JobId}"))">
                 Смотреть результат
             </MudButton>
         </MudItem>
     }
+
 </MudGrid>
 
 @code {
@@ -45,6 +78,19 @@
     bool   IsDone        = false;
 
     List<ProgressLog.LogEntry> LogEntries = new();
+
+    record StepInfo(string Name, string Block)
+    {
+        public bool   Active   { get; set; }
+        public string DotClass { get; set; } = "";
+    }
+
+    List<StepInfo> _steps = new()
+    {
+        new("Анализ",    "AnalysisAgent"),
+        new("План",      "PlanAgent"),
+        new("Мастеринг", "MasteringAgent"),
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,10 +103,27 @@
     {
         LogEntries.Add(new(dto.Block, dto.Status, dto.Message, dto.Timestamp));
         ProgressValue = dto.ProgressPercent;
-        CurrentBlock  = $"{dto.Block} — {dto.Message}";
+        CurrentBlock  = dto.Message;
+
+        foreach (var step in _steps)
+        {
+            if (step.Block == dto.Block)
+            {
+                step.Active   = true;
+                step.DotClass = dto.Status switch
+                {
+                    "done"    => "done",
+                    "error"   => "error",
+                    "running" => "running",
+                    _         => "running",
+                };
+            }
+        }
+
         if (dto.Block == "Pipeline" && dto.Status == "done" && dto.ProgressPercent >= 100)
         {
             IsDone = true;
+            foreach (var s in _steps) { s.Active = true; s.DotClass = "done"; }
             bool hasErrors = LogEntries.Any(e => e.Status == "error");
             if (!hasErrors)
                 InvokeAsync(() => Nav.NavigateTo($"/result/{JobId}"));

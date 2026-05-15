@@ -8,129 +8,204 @@
 
 @if (_session is null)
 {
-    <MudProgressCircular Indeterminate="true" />
+    <div style="display:flex; align-items:center; gap:16px; padding:48px 0;">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
+        <MudText Color="Color.Secondary">Загрузка результата...</MudText>
+    </div>
 }
 else if (_session.Status == "Failed" && _report.Count == 0)
 {
-    <MudAlert Severity="Severity.Error" Class="mb-4">
+    <MudAlert Severity="Severity.Error" Class="mb-4" Style="border-radius:12px;">
         Обработка завершилась с ошибкой — данных анализа нет.
         Вернитесь на главную и загрузите файл заново.
     </MudAlert>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.ArrowBack"
-               Href="/">На главную</MudButton>
+               Style="border-radius:10px;" Href="/">
+        На главную
+    </MudButton>
 }
 else
 {
-    <MudText Typo="Typo.h5" Class="mb-4">Результат обработки</MudText>
+    <MudGrid Spacing="4">
 
-<MudGrid>
-        <!-- Audio players A/B -->
+        <!-- Header -->
+        <MudItem xs="12">
+            <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;">
+                <MudText Typo="Typo.h5">Результат обработки</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-family:monospace;">
+                    job/@_session.JobId
+                </MudText>
+                @if (_session.Bpm is > 0)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                        @(_session.Bpm?.ToString("F0")) BPM
+                    </MudChip>
+                }
+                @if (!string.IsNullOrEmpty(_session.Key) && _session.Key != "unknown")
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">
+                        @_session.Key
+                    </MudChip>
+                }
+            </div>
+        </MudItem>
+
+        <!-- Players -->
         <MudItem xs="12" md="8">
-            <MudPaper Class="pa-4">
+            <MudPaper Class="glass-card pa-5" Elevation="0">
                 @if (OriginalPath is not null)
                 {
-                    <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Secondary">Оригинал</MudText>
+                    <MudText Typo="Typo.overline"
+                             Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-2 d-block">
+                        ОРИГИНАЛ
+                    </MudText>
                     <AudioPlayer FilePath="@OriginalPath" />
-                    <MudDivider Class="my-3" />
+                    <MudDivider Class="my-4" />
                 }
-                <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Primary">Мастер</MudText>
+                <MudText Typo="Typo.overline"
+                         Style="color:#7c5cfc; letter-spacing:2px; font-size:10px;" Class="mb-2 d-block">
+                    МАСТЕР
+                </MudText>
                 <AudioPlayer FilePath="@MasterPath" />
             </MudPaper>
         </MudItem>
 
-        <!-- Rating & feedback -->
+        <!-- Metrics snapshot (2x2 key metrics) -->
+        @if (_before.Count > 0 && _after.Count > 0)
+        {
+            <MudItem xs="12" md="4">
+                <MudPaper Class="glass-card pa-5" Elevation="0" Style="height:100%;">
+                    <MudText Typo="Typo.overline"
+                             Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-4 d-block">
+                        КЛЮЧЕВЫЕ МЕТРИКИ
+                    </MudText>
+                    <MudGrid Spacing="3">
+                        @foreach (var m in _metrics.Take(4))
+                        {
+                            <MudItem xs="6">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@m.Label</MudText>
+                                <div style="display:flex; align-items:baseline; gap:6px; margin-top:2px;">
+                                    <MudText Typo="Typo.body1" Style="@($"font-weight:700; color:{ColorHex(m.Color)};")">
+                                        @m.After
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Style="@($"color:{ColorHex(m.Color)}; opacity:0.8;")">
+                                        @m.Delta
+                                    </MudText>
+                                </div>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Style="opacity:0.5; font-size:10px;">
+                                    было @m.Before
+                                </MudText>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+        }
+
+        <!-- Rating -->
         <MudItem xs="12" md="4">
-            <MudPaper Class="pa-4">
-                <MudText Typo="Typo.subtitle1" Class="mb-3">Оценка</MudText>
+            <MudPaper Class="glass-card pa-5" Elevation="0">
+                <MudText Typo="Typo.overline"
+                         Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-4 d-block">
+                    ОЦЕНКА
+                </MudText>
                 <StarRating @bind-Value="Rating" />
 
-                <MudDivider Class="my-3" />
+                <MudDivider Class="my-4" />
 
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Что не так?</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2 d-block">ЧТО НЕ ТАК?</MudText>
                 <FeedbackTags @bind-Selected="SelectedTags" />
 
-                <MudTextField @bind-Value="Note" Label="Комментарий" Lines="3"
+                <MudTextField @bind-Value="Note" Label="Комментарий" Lines="2"
                               Class="mt-3" Variant="Variant.Outlined" />
 
                 <MudButton Variant="Variant.Filled" Color="Color.Primary"
                            Class="mt-3" FullWidth="true"
                            Disabled="@(Rating == 0)"
+                           Style="border-radius:10px;"
                            OnClick="SubmitFeedback">
                     Сохранить оценку
                 </MudButton>
             </MudPaper>
         </MudItem>
 
-        <!-- Before / After metrics -->
+        <!-- Full metrics table -->
         @if (_before.Count > 0 || _after.Count > 0)
         {
-            <MudItem xs="12">
-                <MudPaper Class="pa-4">
-                    <MudText Typo="Typo.subtitle1" Class="mb-3">Метрики до / после</MudText>
-                    <MudTable Items="@_metrics" Dense="true" Striped="true" Hover="false">
+            <MudItem xs="12" md="8">
+                <MudPaper Class="glass-card pa-5" Elevation="0">
+                    <MudText Typo="Typo.overline"
+                             Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-3 d-block">
+                        МЕТРИКИ ДО / ПОСЛЕ
+                    </MudText>
+                    <MudTable Items="@_metrics" Dense="true" Hover="false"
+                              Style="background:transparent;">
                         <HeaderContent>
-                            <MudTh>Параметр</MudTh>
-                            <MudTh>До</MudTh>
-                            <MudTh>После</MudTh>
-                            <MudTh>Изменение</MudTh>
+                            <MudTh Style="color:#475569; font-size:11px;">Параметр</MudTh>
+                            <MudTh Style="color:#475569; font-size:11px;">До</MudTh>
+                            <MudTh Style="color:#475569; font-size:11px;">После</MudTh>
+                            <MudTh Style="color:#475569; font-size:11px;">Изменение</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.Label</MudTd>
-                            <MudTd>@context.Before</MudTd>
-                            <MudTd><MudText Color="@context.Color">@context.After</MudText></MudTd>
-                            <MudTd><MudText Color="@context.Color">@context.Delta</MudText></MudTd>
+                            <MudTd Style="color:#475569;">@context.Before</MudTd>
+                            <MudTd Style="@($"color:{ColorHex(context.Color)}; font-weight:600;")">@context.After</MudTd>
+                            <MudTd Style="@($"color:{ColorHex(context.Color)};")">@context.Delta</MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudPaper>
             </MudItem>
         }
 
-        <!-- Detailed problem/fix report -->
+        <!-- Report -->
         @if (_report.Count > 0)
         {
             <MudItem xs="12">
-                <MudPaper Class="pa-4">
-                    <MudText Typo="Typo.subtitle1" Class="mb-3">Отчёт об обработке</MudText>
-                    <MudTable Items="@_report" Dense="true" Striped="true" Hover="false">
-                        <HeaderContent>
-                            <MudTh Style="width:200px">Проблема</MudTh>
-                            <MudTh Style="width:80px">Статус</MudTh>
-                            <MudTh>Что обнаружено</MudTh>
-                            <MudTh>Что сделано</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd><MudText><b>@context.Label</b></MudText></MudTd>
-                            <MudTd>
-                                @if (context.Fixed)
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Success">Исправлено</MudChip>
-                                }
-                                else
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">Обнаружено</MudChip>
-                                }
-                            </MudTd>
-                            <MudTd><MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText></MudTd>
-                            <MudTd><MudText Typo="Typo.body2">@context.Action</MudText></MudTd>
-                        </RowTemplate>
-                    </MudTable>
+                <MudPaper Class="glass-card pa-5" Elevation="0">
+                    <MudText Typo="Typo.overline"
+                             Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-4 d-block">
+                        ОТЧЁТ ОБ ОБРАБОТКЕ
+                    </MudText>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        @foreach (var row in _report)
+                        {
+                            <div style="display:flex; gap:16px; padding:16px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06);">
+                                <div style="flex:0 0 180px;">
+                                    <MudText Typo="Typo.body2" Style="font-weight:600;">@row.Label</MudText>
+                                    @if (row.Fixed)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Success"
+                                                 Style="margin-top:6px; height:20px; font-size:10px;">
+                                            Исправлено
+                                        </MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Warning"
+                                                 Style="margin-top:6px; height:20px; font-size:10px;">
+                                            Обнаружено
+                                        </MudChip>
+                                    }
+                                </div>
+                                <div style="flex:1; border-left:1px solid rgba(255,255,255,0.06); padding-left:16px;">
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-1">
+                                        @row.Description
+                                    </MudText>
+                                    @if (!string.IsNullOrEmpty(row.Action) && row.Action != "Не применялось")
+                                    {
+                                        <MudText Typo="Typo.caption" Style="color:#7c5cfc;">
+                                            → @row.Action
+                                        </MudText>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </MudPaper>
             </MudItem>
         }
 
-        <!-- Session info -->
-        <MudItem xs="12">
-            <MudPaper Class="pa-4">
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Детали сессии</MudText>
-                <MudGrid>
-                    <MudItem xs="3"><MudText><b>Job:</b> @_session.JobId</MudText></MudItem>
-                    <MudItem xs="3"><MudText><b>BPM:</b> @(_session.Bpm?.ToString("F0") ?? "—")</MudText></MudItem>
-                    <MudItem xs="3"><MudText><b>Тональность:</b> @(_session.Key ?? "—")</MudText></MudItem>
-                    <MudItem xs="3"><MudText><b>Жанр:</b> @(_session.Genre ?? "—")</MudText></MudItem>
-                </MudGrid>
-            </MudPaper>
-        </MudItem>
     </MudGrid>
 }
 
@@ -310,6 +385,14 @@ else
         "spectral_smearing"   => "Размытость спектра",
         "loudness_mismatch"   => "Несоответствие громкости",
         _                     => tag,
+    };
+
+    static string ColorHex(Color c) => c switch
+    {
+        Color.Success => "#10b981",
+        Color.Warning => "#f59e0b",
+        Color.Error   => "#ef4444",
+        _             => "#64748b",
     };
 
     async Task SubmitFeedback()

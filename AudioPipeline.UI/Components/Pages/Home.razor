@@ -6,96 +6,124 @@
 
 <PageTitle>AudioPipeline Pro</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-4">Загрузка трека</MudText>
+<MudGrid Spacing="4">
 
-<MudGrid>
+    <!-- Hero -->
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5" Class="mb-1">Мастеринг трека</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Загрузи WAV или MP3 — анализ артефактов, коррекция и нормализация громкости автоматически.
+        </MudText>
+    </MudItem>
+
+    <!-- Drop zone -->
     <MudItem xs="12" md="8">
-        <MudPaper Class="@DropZoneClass" Style="min-height:200px; cursor:pointer;"
-                  @ondragover="OnDragOver"
-                  @ondragleave="OnDragLeave">
-            <InputFile id="fileInput" OnChange="OnFileSelected" accept=".mp3,.wav" style="display:none" />
-            <label for="fileInput" style="cursor:pointer; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <MudIcon Icon="@Icons.Material.Filled.AudioFile" Size="Size.Large" Color="Color.Primary" Class="mb-2" />
+        <InputFile id="fileInput" OnChange="OnFileSelected" accept=".mp3,.wav" style="display:none" />
+        <label for="fileInput" style="display:block; width:100%;"
+               @ondragover:preventDefault @ondragover="OnDragOver"
+               @ondragleave="OnDragLeave" @ondrop="OnDragLeave">
+            <div class="drop-zone @(IsDragging ? "drag-over" : "") @(SelectedFile is not null ? "has-file" : "")">
                 @if (SelectedFile is null)
                 {
-                    <MudText Typo="Typo.h6">Перетащи MP3 или WAV сюда</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">или нажми для выбора файла</MudText>
+                    <MudIcon Icon="@Icons.Material.Outlined.CloudUpload"
+                             Style="font-size:48px; color: rgba(139,92,246,0.7);" Class="@(IsDragging ? "pulse" : "")" />
+                    <MudText Typo="Typo.h6" Style="color:#c4b5fd; margin-top:8px;">
+                        Перетащи файл сюда
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        или нажми для выбора — MP3, WAV до 500 МБ
+                    </MudText>
                 }
                 else
                 {
-                    <MudText Typo="Typo.h6" Color="Color.Success">@SelectedFile.Name</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.AudioFile"
+                             Style="font-size:48px; color:#10b981;" />
+                    <MudText Typo="Typo.h6" Style="color:#6ee7b7; margin-top:8px; max-width:400px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        @SelectedFile.Name
+                    </MudText>
                     <MudText Typo="Typo.body2" Color="Color.Secondary">@FormatSize(SelectedFile.Size)</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Style="margin-top:4px; opacity:0.6;">
+                        нажми чтобы выбрать другой файл
+                    </MudText>
                 }
-            </label>
-        </MudPaper>
+            </div>
+        </label>
     </MudItem>
 
+    <!-- Settings panel -->
     <MudItem xs="12" md="4">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.h6" Class="mb-3">Референс (необязательно)</MudText>
-            <InputFile id="refInput" OnChange="OnRefSelected" accept=".mp3,.wav" style="display:none" />
-            <label for="refInput">
-                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Compare">
-                    @(ReferenceFile is null ? "Выбрать референс" : ReferenceFile.Name)
-                </MudButton>
-            </label>
+        <MudPaper Class="glass-card pa-5" Elevation="0" Style="height:100%;">
+            <MudText Typo="Typo.subtitle2" Class="mb-4" Color="Color.Secondary"
+                     Style="text-transform:uppercase; letter-spacing:1.5px; font-size:11px;">
+                Параметры
+            </MudText>
 
-            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.body2" Class="mb-1">
+                Целевая громкость: <b style="color:#a78bfa;">@TargetLufs LUFS</b>
+            </MudText>
+            <MudSlider @bind-Value="TargetLufs" Min="-23" Max="-8" Step="1"
+                       Color="Color.Primary" Class="mb-4" />
+            <div style="display:flex; justify-content:space-between;">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">−23 (тихо)</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">−8 (громко)</MudText>
+            </div>
 
-            <MudText Typo="Typo.h6" Class="mb-2">Блоки обработки</MudText>
-            @foreach (var block in Blocks)
-            {
-                <MudCheckBox @bind-Value="block.Selected" Label="@block.Label" Color="Color.Primary" Dense="true" />
-            }
+            <MudDivider Class="my-4" />
+
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Analytics" Size="Size.Small" Color="Color.Primary" />
+                    <MudText Typo="Typo.body2">Анализ 12 AI-артефактов</MudText>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <MudIcon Icon="@Icons.Material.Outlined.AutoFixHigh" Size="Size.Small" Color="Color.Primary" />
+                    <MudText Typo="Typo.body2">DSP-коррекция и мастеринг</MudText>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <MudIcon Icon="@Icons.Material.Outlined.Speed" Size="Size.Small" Color="Color.Primary" />
+                    <MudText Typo="Typo.body2">Нормализация до @TargetLufs LUFS</MudText>
+                </div>
+            </div>
         </MudPaper>
     </MudItem>
 
+    <!-- Action -->
     <MudItem xs="12">
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
-                   StartIcon="@Icons.Material.Filled.PlayArrow"
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   StartIcon="@(IsRunning ? Icons.Material.Filled.HourglassEmpty : Icons.Material.Filled.PlayArrow)"
                    Disabled="@(SelectedFile is null || IsRunning)"
-                   OnClick="StartPipeline">
-            @(IsRunning ? "Обрабатывается..." : "Запустить")
+                   OnClick="StartPipeline"
+                   Style="min-width:200px; border-radius:12px; font-weight:600;">
+            @(IsRunning ? "Загружается..." : "Запустить обработку")
         </MudButton>
     </MudItem>
+
 </MudGrid>
 
 @code {
     IBrowserFile? SelectedFile;
-    IBrowserFile? ReferenceFile;
     bool IsDragging;
     bool IsRunning;
+    int  TargetLufs = -14;
 
-    string DropZoneClass => IsDragging
-        ? "pa-6 d-flex flex-column align-center justify-center mud-border-primary"
-        : "pa-6 d-flex flex-column align-center justify-center";
-
-    List<BlockItem> Blocks = new()
-    {
-        new("Analysis",  "1. Анализ трека",        true),
-        new("Stems",     "2. Разбивка на стемы",   true),
-        new("Midi",      "3. MIDI транскрипция",    true),
-        new("Vst",       "4. VST рендер",           true),
-        new("Knowledge", "5. Анализ книг (Claude)", true),
-        new("Mix",       "6. Микширование",         true),
-        new("Master",    "7. Мастеринг",            true),
-        new("Rvc",       "8. RVC вокал",            false),
-    };
-
-    void OnDragOver() => IsDragging = true;
+    void OnDragOver()  => IsDragging = true;
     void OnDragLeave() => IsDragging = false;
 
-    void OnFileSelected(InputFileChangeEventArgs e) => SelectedFile = e.File;
-    void OnRefSelected(InputFileChangeEventArgs e)  => ReferenceFile  = e.File;
+    void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        SelectedFile = e.File;
+        IsDragging   = false;
+    }
 
     async Task StartPipeline()
     {
         if (SelectedFile is null) return;
         IsRunning = true;
-
         try
         {
-            var jobId = await PipelineService.StartAsync(SelectedFile);
+            var jobId = await PipelineService.StartAsync(SelectedFile, TargetLufs);
             Nav.NavigateTo($"/progress/{jobId}");
         }
         catch (Exception ex)
@@ -111,9 +139,4 @@
         < 1024 * 1024 * 1024 => $"{bytes / 1024.0 / 1024.0:F1} MB",
         _                    => $"{bytes / 1024.0 / 1024.0 / 1024.0:F1} GB"
     };
-
-    record BlockItem(string Name, string Label, bool InitialSelected)
-    {
-        public bool Selected { get; set; } = InitialSelected;
-    }
 }

@@ -1,30 +1,85 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider />
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1" Color="Color.Dark">
-        <MudText Typo="Typo.h6">AudioPipeline Pro</MudText>
+    <MudAppBar Elevation="0" Color="Color.Transparent" Dense="false">
+        <MudIcon Icon="@Icons.Material.Filled.GraphicEq" Color="Color.Primary" Class="mr-2" />
+        <MudText Typo="Typo.h6" Style="font-weight:700; letter-spacing:-0.5px;">
+            AudioPipeline <span style="color:#8b5cf6;">Pro</span>
+        </MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Href="/settings" />
+        <MudIconButton Icon="@Icons.Material.Outlined.Settings"
+                       Color="Color.Default" Href="/settings"
+                       Title="Настройки" />
     </MudAppBar>
 
-    <MudDrawer Open="true" Variant="DrawerVariant.Persistent" Elevation="2">
+    <MudDrawer Open="true" Variant="DrawerVariant.Persistent"
+               Elevation="0" Width="220px">
+        <div style="padding: 24px 0 8px 0;">
+            <MudText Typo="Typo.overline"
+                     Style="color:#4b5563; padding: 0 20px; letter-spacing:2px; font-size:10px;">
+                НАВИГАЦИЯ
+            </MudText>
+        </div>
         <NavMenu />
     </MudDrawer>
 
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-6">
             @Body
         </MudContainer>
     </MudMainContent>
 </MudLayout>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    Произошла ошибка.
+    <a href="" class="reload">Перезагрузить</a>
+    <span class="dismiss">✕</span>
 </div>
+
+@code {
+    private MudTheme _theme = new MudTheme
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary           = "#8b5cf6",
+            PrimaryDarken     = "#7c3aed",
+            PrimaryLighten    = "#a78bfa",
+            Secondary         = "#06b6d4",
+            Success           = "#10b981",
+            Warning           = "#f59e0b",
+            Error             = "#ef4444",
+            Info              = "#3b82f6",
+
+            Background        = "#0f1117",
+            BackgroundGray    = "#0f1117",
+            Surface           = "#161b27",
+            DrawerBackground  = "#0d1020",
+            AppbarBackground  = "#0f1117",
+
+            TextPrimary       = "#e2e8f0",
+            TextSecondary     = "#94a3b8",
+            TextDisabled      = "#475569",
+
+            ActionDefault     = "#94a3b8",
+            LinesDefault      = "rgba(255,255,255,0.08)",
+            LinesInputs       = "rgba(255,255,255,0.12)",
+            TableLines        = "rgba(255,255,255,0.06)",
+            Divider           = "rgba(255,255,255,0.08)",
+
+            OverlayDark       = "rgba(0,0,0,0.7)",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = ["Inter", "Segoe UI", "system-ui", "sans-serif"] },
+            H5      = new H5Typography      { FontWeight = "700", LetterSpacing = "-0.5px" },
+            H6      = new H6Typography      { FontWeight = "700", LetterSpacing = "-0.3px" },
+            Subtitle1 = new Subtitle1Typography { FontWeight = "600" },
+            Subtitle2 = new Subtitle2Typography { FontWeight = "600" },
+        },
+    };
+}
