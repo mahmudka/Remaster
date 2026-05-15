@@ -59,7 +59,13 @@
         ProgressValue = dto.ProgressPercent;
         CurrentBlock  = $"{dto.Block} — {dto.Message}";
         if (dto.Status == "done" && dto.ProgressPercent >= 100)
+        {
             IsDone = true;
+            // Auto-navigate only on clean success (no error entries in log)
+            bool hasErrors = LogEntries.Any(e => e.Status == "error");
+            if (!hasErrors)
+                InvokeAsync(() => Nav.NavigateTo($"/result/{JobId}"));
+        }
         InvokeAsync(StateHasChanged);
     }
 

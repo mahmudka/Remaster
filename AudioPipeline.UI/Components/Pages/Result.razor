@@ -10,6 +10,16 @@
 {
     <MudProgressCircular Indeterminate="true" />
 }
+else if (_session.Status == "Failed" && _report.Count == 0)
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">
+        Обработка завершилась с ошибкой — данных анализа нет.
+        Вернитесь на главную и загрузите файл заново.
+    </MudAlert>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.ArrowBack"
+               Href="/">На главную</MudButton>
+}
 else
 {
     <MudText Typo="Typo.h5" Class="mb-4">Результат обработки</MudText>
