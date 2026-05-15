@@ -1,227 +1,71 @@
-# AudioPipeline Pro — Claude API настройки
-
-Этот файл определяет какую модель Claude использовать
-для каждого шага — чтобы экономить токены и получать
-максимальное качество там где это важно.
+# AudioPipeline Pro — Инструкции для Claude
 
 ---
 
-## Принцип выбора модели
+## О проекте
 
-```
-Простая задача (JSON, структура, данные)  → Haiku   (дёшево, быстро)
-Средняя задача (анализ, план, рассуждения) → Sonnet  (баланс)
-Сложная задача (глубокий анализ, стратегия) → Opus   (дорого, мощно)
-```
+AudioPipeline Pro v2 — локальное приложение для исправления AI-артефактов в WAV-файлах.
+**Не использует Claude API.** Всё решение работает без внешних запросов.
 
----
-
-## Модели по агентам
-
-| Агент | Модель | Причина |
-|---|---|---|
-| `KnowledgeAgent` — парсинг правил из книг | `claude-haiku-4-5` | Структурированное извлечение данных |
-| `KnowledgeAgent` — план микса | `claude-sonnet-4-6` | Требует рассуждений и обоснований |
-| `LearningAgent` — анализ паттернов | `claude-haiku-4-5` | Математика и структура |
-| `LearningAgent` — интерпретация оценок | `claude-sonnet-4-6` | Нужно понимание контекста |
-| Генерация Skill профиля | `claude-sonnet-4-6` | Важное решение, нужна точность |
-| Описание результата для UI | `claude-haiku-4-5` | Простой текст |
+Полный контекст: `SKILL.md`, `AGENTS.md`, `ARCHITECTURE_V2.md`.
 
 ---
 
-## Конфигурация
+## Стек
 
-```json
-// appsettings.json
-
-{
-  "Claude": {
-    "ApiKey": "YOUR_API_KEY",
-    "BaseUrl": "https://api.anthropic.com",
-
-    "Models": {
-      "Fast":     "claude-haiku-4-5",
-      "Balanced": "claude-sonnet-4-6",
-      "Powerful": "claude-sonnet-4-6"
-    },
-
-    "Agents": {
-      "KnowledgeAgent": {
-        "ParseBooks":    "Fast",
-        "GeneratePlan":  "Balanced",
-        "MaxTokens":     2000
-      },
-      "LearningAgent": {
-        "AnalyzePatterns":    "Fast",
-        "InterpretFeedback":  "Balanced",
-        "MaxTokens":          1000
-      },
-      "SkillGenerator": {
-        "CreateProfile":  "Balanced",
-        "MaxTokens":      1500
-      },
-      "UiDescriptions": {
-        "Default":    "Fast",
-        "MaxTokens":  500
-      }
-    }
-  }
-}
-```
+- Blazor Server / ASP.NET Core 8 + MudBlazor 9
+- Python 3.11 + FastAPI (один сервис localhost:8001)
+- MS SQL Server + EF Core 8
 
 ---
 
-## Как использовать в коде
+## Правила работы с кодом
 
-```csharp
-// ClaudeService.cs
+### .NET / Blazor
 
-public class ClaudeService
-{
-    private readonly ClaudeConfig _config;
+- Все страницы: `@rendermode InteractiveServer`
+- JSON из Python парсить через `Dictionary<string, JsonElement>` с проверкой `ValueKind == JsonValueKind.Number`
+- Числа из Python-JSON — `GetDouble()`, не `GetSingle()`
+- SQL Server `float` = double (8 байт) → EF Core поле `double?`, не `float?`
+- Культура для отправки чисел в Python — `CultureInfo.InvariantCulture`
+- MudBlazor 9: тёмная тема через `PaletteDark` + `IsDarkMode="true"`, нет `Shape` в `MudTheme`
+- C# выражения в атрибуте Style: `Style="@($"color:{value};")"`, не `Style="color:@value;"`
 
-    public async Task<string> Complete(
-        string prompt,
-        ClaudeTask task,
-        int? maxTokens = null)
-    {
-        var model = task switch {
-            ClaudeTask.ParseBooks       =>
-                _config.Models.Fast,
-            ClaudeTask.GenerateMixPlan  =>
-                _config.Models.Balanced,
-            ClaudeTask.AnalyzePatterns  =>
-                _config.Models.Fast,
-            ClaudeTask.InterpretFeedback =>
-                _config.Models.Balanced,
-            ClaudeTask.CreateSkill      =>
-                _config.Models.Balanced,
-            ClaudeTask.UiDescription    =>
-                _config.Models.Fast,
-            _ => _config.Models.Balanced
-        };
+### Python / FastAPI
 
-        var tokens = maxTokens
-            ?? _config.Agents
-                .GetMaxTokens(task);
+- Платформа: Windows, ARM64 — нет soundfile через pip в некоторых конфигурациях, есть scipy.io.wavfile
+- Числа → JSON всегда double precision, не float32
+- Порядок DSP строгий (см. AGENTS.md)
 
-        return await CallApi(prompt, model, tokens);
-    }
-}
+### Progress и навигация
 
-public enum ClaudeTask
-{
-    ParseBooks,
-    GenerateMixPlan,
-    AnalyzePatterns,
-    InterpretFeedback,
-    CreateSkill,
-    UiDescription
-}
-```
+- OrchestratorService: агенты посылают max 99%, Pipeline посылает 100% только после SaveChangesAsync
+- Progress.razor переходит на Result только при `Block == "Pipeline" && Status == "done" && ProgressPercent >= 100`
 
 ---
 
-## Промпты по агентам
+## Исправленные баги (не повторять)
 
-### KnowledgeAgent — парсинг книги (Haiku)
-
-```
-Системный промпт:
-"Ты извлекаешь технические правила сведения и мастеринга
-из текста книги. Отвечай ТОЛЬКО валидным JSON.
-Никакого дополнительного текста."
-
-Пользовательский промпт:
-"Извлеки правила из этого фрагмента.
-Формат: [{parameter, value, unit, genre, rationale}]
-
-Текст: {fragment}"
-```
-
-### KnowledgeAgent — план микса (Sonnet)
-
-```
-Системный промпт:
-"Ты профессиональный звукорежиссёр.
-Анализируешь характеристики трека и составляешь
-конкретный план микса. Каждое решение обосновываешь
-ссылкой на источник. Отвечай в JSON."
-
-Пользовательский промпт:
-"Трек: {trackProfile}
-Правила из книг: {knowledgeRules}
-Выученные правила: {learnedRules}
-
-Составь план микса. Учти:
-- реверб и делей только на финальном миксе
-- укажи конкретные значения (Hz, dB, ms, ratio)
-- обоснуй каждое решение ссылкой на книгу"
-```
-
-### LearningAgent — анализ паттернов (Haiku)
-
-```
-Системный промпт:
-"Ты анализируешь данные сессий микширования.
-Находишь паттерны между параметрами и оценками.
-Отвечай ТОЛЬКО JSON."
-
-Пользовательский промпт:
-"Сессии жанра {genre} с оценкой 4+:
-{sessions}
-
-Найди параметры которые коррелируют с высокой оценкой."
-```
-
-### LearningAgent — интерпретация фидбека (Sonnet)
-
-```
-Системный промпт:
-"Ты интерпретируешь отзывы пользователя о качестве
-микса и предлагаешь конкретные корректировки параметров."
-
-Пользовательский промпт:
-"Пользователь поставил оценку {rating}/5.
-Жалобы: {feedbackTags}
-Заметка: {userNote}
-Применённые параметры: {parameters}
-
-Предложи конкретные изменения параметров для следующей сессии."
-```
+1. `JsonElement.TryGetDouble()` на String элементе бросает `InvalidOperationException` — всегда проверять `ValueKind`
+2. `GetSingle()` теряет точность для Python double JSON — использовать `(float)GetDouble()`
+3. EF Core mapping `float?` для SQL `float` колонки → `InvalidCastException` при чтении — нужно `double?`
+4. Blazor Server: `OnInitializedAsync` вызывается дважды (SSR + interactive) — исключение в interactive = пустой UI
+5. Навигация до сохранения в БД — Result показывает пустые данные — фиксировать порядком в OrchestratorService
 
 ---
 
-## Экономия токенов
+## Команды разработки
 
-### Правила
+```powershell
+# Запуск приложения
+dotnet run --project AudioPipeline.UI
 
-1. **Никогда не отправлять полный текст книги** — только фрагменты по 2000 символов
-2. **Кешировать результаты парсинга** — книга парсится один раз, правила хранятся в БД
-3. **Передавать только релевантные правила** — фильтровать по жанру до отправки в API
-4. **Haiku для структурированных задач** — если задача сводится к извлечению данных
-5. **Ограничивать max_tokens** — каждый агент имеет свой лимит токенов
+# Запуск Python сервиса
+services\python_audio\.venv\Scripts\python -m uvicorn main:app --port 8001 --app-dir services\python_audio
 
-### Примерный расход на один трек
+# Сборка
+dotnet build AudioPipeline.UI
 
-| Шаг | Модель | Токены (вход) | Токены (выход) |
-|---|---|---|---|
-| Парсинг книги (разово) | Haiku | ~8000 | ~2000 |
-| План микса | Sonnet | ~3000 | ~2000 |
-| Анализ паттернов | Haiku | ~2000 | ~500 |
-| Интерпретация фидбека | Sonnet | ~1000 | ~500 |
-| UI описание | Haiku | ~200 | ~200 |
-
-Книги парсятся **один раз** при загрузке — не при каждом треке.
-
----
-
-## Переключение модели в UI
-
-В настройках приложения пользователь может выбрать режим:
-
-```
-Режим качества:
-● Стандартный   (Haiku + Sonnet — экономично)
-○ Максимальный  (Sonnet везде — лучше качество)
+# Остановка зависших процессов dotnet
+Stop-Process -Name "dotnet" -Force
 ```

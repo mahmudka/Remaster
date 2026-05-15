@@ -1,7 +1,6 @@
-# AudioPipeline Pro — Агенты
+# AudioPipeline Pro — Агенты v2
 
-Каждый агент — отдельный класс с интерфейсом `IAgent`.
-Агенты общаются через `PipelineContext` — общий контекст который передаётся по цепочке.
+Три агента, фиксированный порядок, общий контекст `PipelineContext`.
 
 ---
 
@@ -9,15 +8,9 @@
 
 | Агент | Роль | Вызывает |
 |---|---|---|
-| `AnalysisAgent` | BPM, тональность, жанр, спектр | Python :8001 /analyze |
-| `StemsAgent` | Разбивка на стемы Demucs | Python :8001 /stems |
-| `MidiAgent` | MIDI транскрипция инструментов | Python :8001 /midi |
-| `VstAgent` | Рендер MIDI через VST плагины | C++ :8003 /render |
-| `RvcAgent` | Клонирование и конвертация вокала | Python :8001 /rvc |
-| `KnowledgeAgent` | Анализ трека + план микса из книг | Claude API + MS SQL |
-| `MixAgent` | Микширование сухих сигналов | Python :8002 /mix |
-| `MasterAgent` | Мастеринг финального микса | Python :8002 /master |
-| `LearningAgent` | Обучение на оценках пользователя | Python :8002 /learn |
+| `AnalysisAgent` | Анализ трека, детекция AI-артефактов | Python :8001 /analyze |
+| `PlanAgent` | Построение MasteringPlan из правил БД | Python :8001 /plan |
+| `MasteringAgent` | DSP-обработка + верификация | Python :8001 /master |
 
 ---
 
@@ -27,8 +20,7 @@
 public interface IAgent
 {
     string Name { get; }
-    PipelineBlock Block { get; }
-    Task<PipelineContext> Run(PipelineContext ctx);
+    Task<PipelineContext> RunAsync(PipelineContext ctx, CancellationToken ct);
 }
 ```
 
@@ -40,206 +32,112 @@ public interface IAgent
 public class PipelineContext
 {
     // Входные данные
-    public string InputFile        { get; set; }
-    public string OutputPath       { get; set; }
-    public string ReferenceFile    { get; set; }
-    public string RvcModelPath     { get; set; }
-    public string RvcIndexPath     { get; set; }
+    public string        InputFile          { get; set; } = "";
+    public string        OutputPath         { get; set; } = "";
+    public float         TargetLufs         { get; set; } = -14f;
 
-    // Анализ
-    public float  Bpm              { get; set; }
-    public string Key              { get; set; }
-    public string Genre            { get; set; }
-    public string FrequencyMap     { get; set; } // JSON
-    public string DynamicsProfile  { get; set; } // JSON
-    public string StereoProfile    { get; set; } // JSON
+    // Анализ ДО
+    public float         LufsBefore         { get; set; }
+    public float         TruePeakBefore     { get; set; }
+    public float         DrBefore           { get; set; }
+    public float         LraBefore          { get; set; }
+    public string        AnalysisJson       { get; set; } = "";
+    public List<string>  ProblemTags        { get; set; } = new();
 
-    // Стемы
-    public string VocalStem        { get; set; }
-    public string BassStem         { get; set; }
-    public string DrumsStem        { get; set; }
-    public string InstrumentsStem  { get; set; }
+    // BPM / тональность / жанр
+    public float         Bpm                { get; set; }
+    public string        Key                { get; set; } = "";
+    public string        Genre              { get; set; } = "";
 
-    // MIDI
-    public string BassMidi         { get; set; }
-    public string DrumsMidi        { get; set; }
-    public string InstrumentsMidi  { get; set; }
-
-    // VST рендер
-    public string BassVst          { get; set; }
-    public string DrumsVst         { get; set; }
-    public string InstrumentsVst   { get; set; }
-
-    // RVC вокал
-    public string VocalRvc         { get; set; }
-
-    // План микса от KnowledgeAgent
-    public MixPlan MixPlan         { get; set; }
+    // План
+    public MasteringPlan Plan               { get; set; } = new();
 
     // Результаты
-    public string MixFile          { get; set; }
-    public string MasterWav        { get; set; }
-    public string MasterMp3        { get; set; }
-    public string ReportJson       { get; set; }
+    public string        OutputWav          { get; set; } = "";
+    public string        ReportJson         { get; set; } = "";
+
+    // Анализ ПОСЛЕ
+    public float         LufsAfter          { get; set; }
+    public float         TruePeakAfter      { get; set; }
+    public float         DrAfter            { get; set; }
+    public float         LraAfter           { get; set; }
+    public string        AnalysisAfterJson  { get; set; } = "";
 
     // Служебное
-    public string       JobId      { get; set; }
-    public string       LastResult { get; set; }
-    public List<string> Errors     { get; set; } = new();
-    public List<string> BlocksRun  { get; set; } = new();
+    public string        JobId              { get; set; } = "";
+    public string        LastResult         { get; set; } = "";
+    public List<string>  Errors             { get; set; } = new();
 }
 ```
 
 ---
 
-## Блочная генерация
+## Оркестрация
 
 ```csharp
-public enum PipelineBlock
+IAgent[] pipeline = [_analysis, _plan, _mastering];
+
+for (int i = 0; i < pipeline.Length; i++)
 {
-    Analysis  = 1,
-    Stems     = 2,
-    Midi      = 3,
-    Vst       = 4,
-    Rvc       = 5,
-    Knowledge = 6,
-    Mix       = 7,
-    Master    = 8
+    ctx = await pipeline[i].RunAsync(ctx, ct);
+    int pct = Math.Min((i + 1) * 100 / pipeline.Length, 99);
+    await PushAsync(jobId, pipeline[i].Name, "done", ctx.LastResult, pct);
 }
+
+await db.SaveChangesAsync(ct);
+await PushAsync(jobId, "Pipeline", "done", "Обработка завершена", 100);
 ```
 
-Пользователь выбирает любой набор блоков.
-Оркестратор проверяет зависимости и запускает в правильном порядке.
-
-### Зависимости блоков
-
-| Блок | Требует |
-|---|---|
-| Stems | Analysis |
-| Midi | Stems |
-| Vst | Midi |
-| Rvc | Stems |
-| Knowledge | Analysis |
-| Mix | Stems или Vst + Rvc + Knowledge |
-| Master | Mix |
+Зависимости не нужны — порядок фиксирован.
 
 ---
 
-## Оркестратор
+## AI-артефакты
 
-```csharp
-public class OrchestratorService
-{
-    public async Task RunPipeline(
-        PipelineJob job,
-        List<PipelineBlock> selectedBlocks)
-    {
-        var ctx = new PipelineContext {
-            JobId      = job.Id,
-            InputFile  = job.InputFile,
-            OutputPath = job.OutputPath,
-            ReferenceFile = job.ReferenceFile
-        };
-
-        var ordered = ResolveDependencies(selectedBlocks);
-
-        foreach (var block in ordered)
-        {
-            var agent = _agents[block];
-            ctx = await agent.Run(ctx);
-            ctx.BlocksRun.Add(block.ToString());
-
-            await _progressHub.SendProgress(
-                ctx.JobId, block, ctx.LastResult);
-        }
-    }
-
-    private List<PipelineBlock> ResolveDependencies(
-        List<PipelineBlock> selected)
-    {
-        // Автоматически добавляет недостающие зависимости
-        // и сортирует в правильном порядке
-    }
-}
-```
+| Тег | Детекция | DSP-исправление |
+|---|---|---|
+| `true_peak_clip` | True Peak > -0.5 dBTP | Soft de-clipper |
+| `ai_noise` | Noise floor > -50 дБ | noisereduce |
+| `sub_issues` | Sub-phase diff > 6° | HPF 20 Гц + sub в моно |
+| `metallic_resonance` | Узкий пик (Q>4) в >50% фреймов | Notch EQ |
+| `muddy_lowmid` | Low - Mid > 3 дБ | Peak EQ 300 Гц -3 дБ |
+| `sibilance` | High - Mid > 4 дБ на 5-8 кГц | De-esser 6 кГц -3 дБ |
+| `missing_transients` | Crest factor < 8 | Transient shaper |
+| `over_compressed` | DR < 7 или LRA < 4 ЛУ | Expand ratio 1.5 |
+| `artificial_stereo` | Width > 1.8 или < 0.3 | M/S stereo width = 1.0 |
+| `phase_issues` | Корреляция < 0.3 | M/S width = 0.9 |
+| `spectral_smearing` | Air < -12 дБ | High shelf +1.5 дБ |
+| `loudness_mismatch` | |LUFS - target| > 1 дБ | Двойная LUFS нормализация |
 
 ---
 
-## KnowledgeAgent — детали
+## Порядок DSP-цепочки (строгий)
 
-Единственный агент который использует Claude API.
-Анализирует трек и генерирует уникальный план микса на основе книг.
-Модель: claude-haiku-4-5 — см. CLAUDE.md
-
-```csharp
-public class KnowledgeAgent : IAgent
-{
-    public async Task<PipelineContext> Run(
-        PipelineContext ctx)
-    {
-        // 1. Достать правила из БД по жанру
-        var rules = await _db
-            .GetBestParameters(ctx.Genre);
-
-        // 2. Сформировать промпт с анализом трека
-        // 3. Отправить в Claude API
-        // 4. Получить MixPlan JSON
-        // 5. Предложить пользователю на утверждение
-
-        ctx.MixPlan = await GenerateMixPlan(ctx, rules);
-        return ctx;
-    }
-}
+```
+1.  De-clipper
+2.  Шумоподавление
+3.  Sub-bass в моно
+4.  Удаление резонансов (dynamic EQ)
+5.  EQ low-mid
+6.  De-esser
+7.  Transient shaper
+8.  Expand (over_compressed)
+9.  M/S stereo correction
+10. High shelf (spectral_smearing)
+11. Лимитер (ceiling -1.0 dBTP)
+12. LUFS нормализация — ВСЕГДА
 ```
 
-### Структура MixPlan
-
-```csharp
-public class MixPlan
-{
-    public List<TrackRecommendation> Tracks  { get; set; }
-    public BusRecommendation         Bus     { get; set; }
-    public ReverbSettings            Reverb  { get; set; }
-    public DelaySettings             Delay   { get; set; }
-    public List<string>              Sources { get; set; }
-    // Sources — ссылки на книги: "Bob Katz Ch.5", "Senior p.142"
-}
-
-public class TrackRecommendation
-{
-    public string       Track      { get; set; } // "bass", "vocal"
-    public List<EqBand> Eq         { get; set; }
-    public CompSettings Comp       { get; set; }
-    public string       Rationale  { get; set; } // обоснование
-    public string       BookSource { get; set; } // источник
-}
-```
+LUFS нормализация выполняется в два прохода: нормализация → лимитер → проверка → коррекция если отклонение > 0.5 дБ.
 
 ---
 
-## Порядок эффектов (важно)
+## Эндпоинты python_audio :8001
 
 ```
-Стемы (сухой сигнал)
-    ↓
-EQ на каждом треке (убрать частотные конфликты)
-    ↓
-Компрессия на каждом треке
-    ↓
-Балансировка уровней + панорама
-    ↓
-СБОРКА МИКСА
-    ↓
-Групповая компрессия на шине
-    ↓
-Реверб (на миксе — не на стемах)
-    ↓
-Делей (на миксе — не на стемах)
-    ↓
-Финальный EQ шины
-    ↓
-МАСТЕРИНГ
+POST /analyze    — WAV/MP3 → JSON анализа с тегами
+POST /plan       — {tags, genre, target_lufs} → MasteringPlan JSON
+POST /master     — {input_path, plan, output_path} → {output_wav, report_json}
+POST /learn      — {session_id, rating, feedback_tags} → обновление LearnedRules
+GET  /health     — {"status":"ok"}
 ```
-
-Реверб и делей ВСЕГДА после сборки микса.
-Никогда не применяются на отдельных стемах.

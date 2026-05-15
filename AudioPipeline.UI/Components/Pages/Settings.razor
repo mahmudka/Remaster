@@ -5,116 +5,157 @@
 
 <PageTitle>Настройки</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-4">Настройки</MudText>
+<MudGrid Spacing="4">
 
-<MudGrid>
-    <!-- Claude API -->
+    <MudItem xs="12">
+        <MudText Typo="Typo.h5" Class="mb-1">Настройки</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Параметры обработки и пути к файлам.
+        </MudText>
+    </MudItem>
+
+    <!-- Целевая громкость -->
     <MudItem xs="12" md="6">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.subtitle1" Class="mb-3">Claude API</MudText>
-            <MudTextField @bind-Value="ApiKey" Label="API Key" Variant="Variant.Outlined"
-                          InputType="InputType.Password" FullWidth="true" Class="mb-3" />
-            <MudSelect @bind-Value="QualityMode" Label="Режим качества" Variant="Variant.Outlined">
-                <MudSelectItem Value="@("standard")">Стандартный (Haiku + Sonnet)</MudSelectItem>
-                <MudSelectItem Value="@("max")">Максимальный (Sonnet везде)</MudSelectItem>
-            </MudSelect>
+        <MudPaper Class="glass-card pa-5" Elevation="0">
+            <MudText Typo="Typo.overline"
+                     Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-4 d-block">
+                ЦЕЛЕВАЯ ГРОМКОСТЬ
+            </MudText>
+
+            <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+                @foreach (var preset in _lufsPresets)
+                {
+                    <div @onclick="@(() => SelectPreset(preset.Value))"
+                         style="display:flex; align-items:center; justify-content:space-between;
+                                padding:12px 16px; border-radius:10px; cursor:pointer;
+                                border:1px solid @(TargetLufs == preset.Value ? "#8b5cf6" : "rgba(255,255,255,0.08)");
+                                background:@(TargetLufs == preset.Value ? "rgba(139,92,246,0.12)" : "transparent");
+                                transition:all 0.15s;">
+                        <MudText Typo="Typo.body2" Style="@(TargetLufs == preset.Value ? "color:#c4b5fd;" : "")">
+                            @preset.Label
+                        </MudText>
+                        <MudText Typo="Typo.caption" Style="font-family:monospace; color:#94a3b8;">
+                            @preset.Value LUFS
+                        </MudText>
+                    </div>
+                }
+            </div>
+
+            <MudDivider Class="mb-4" />
+
+            <MudText Typo="Typo.body2" Class="mb-2">
+                Своё значение: <b style="color:#a78bfa;">@TargetLufs LUFS</b>
+            </MudText>
+            <MudSlider @bind-Value="TargetLufs" Min="-23" Max="-8" Step="1"
+                       Color="Color.Primary" />
+            <div style="display:flex; justify-content:space-between; margin-top:4px;">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">−23 (тихо)</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">−8 (громко)</MudText>
+            </div>
         </MudPaper>
     </MudItem>
 
-    <!-- Paths -->
+    <!-- Папки и сервис -->
     <MudItem xs="12" md="6">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.subtitle1" Class="mb-3">Пути</MudText>
-            <MudTextField @bind-Value="OutputFolder" Label="Выходная папка"
-                          Variant="Variant.Outlined" FullWidth="true" Class="mb-3"
-                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Folder" />
-            <MudTextField @bind-Value="VstFolder" Label="Папка VST3 плагинов"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Folder" />
-        </MudPaper>
-    </MudItem>
+        <div style="display:flex; flex-direction:column; gap:16px;">
 
-    <!-- Microservices -->
-    <MudItem xs="12" md="6">
-        <MudPaper Class="pa-4">
-            <MudText Typo="Typo.subtitle1" Class="mb-3">Микросервисы</MudText>
-            <MudTextField @bind-Value="StemsUrl"  Label="Stems service (8001)"
-                          Variant="Variant.Outlined" FullWidth="true" Class="mb-2" />
-            <MudTextField @bind-Value="MixUrl"    Label="Mix service (8002)"
-                          Variant="Variant.Outlined" FullWidth="true" Class="mb-2" />
-            <MudTextField @bind-Value="VstUrl"    Label="VST service (8003)"
-                          Variant="Variant.Outlined" FullWidth="true" Class="mb-2" />
-            <MudTextField @bind-Value="RvcUrl"    Label="RVC service (8004)"
-                          Variant="Variant.Outlined" FullWidth="true" />
+            <MudPaper Class="glass-card pa-5" Elevation="0">
+                <MudText Typo="Typo.overline"
+                         Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-4 d-block">
+                    ВЫХОДНАЯ ПАПКА
+                </MudText>
+                <MudTextField @bind-Value="OutputFolder" Label="Путь к папке"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Material.Filled.Folder"
+                              Style="font-family:monospace; font-size:13px;" />
+            </MudPaper>
 
-            <MudButton Variant="Variant.Outlined" Class="mt-3" OnClick="CheckServices">
-                Проверить сервисы
-            </MudButton>
+            <MudPaper Class="glass-card pa-5" Elevation="0">
+                <MudText Typo="Typo.overline"
+                         Style="color:#4b5563; letter-spacing:2px; font-size:10px;" Class="mb-4 d-block">
+                    PYTHON СЕРВИС
+                </MudText>
+                <MudTextField @bind-Value="AudioServiceUrl" Label="python_audio URL"
+                              Variant="Variant.Outlined" FullWidth="true" Class="mb-3"
+                              Style="font-family:monospace; font-size:13px;" />
 
-            @if (ServiceStatus.Any())
-            {
-                <div class="mt-2">
-                    @foreach (var kv in ServiceStatus)
-                    {
-                        <MudChip T="string" Size="Size.Small"
-                                 Color="@(kv.Value ? Color.Success : Color.Error)"
-                                 Class="mr-1">
-                            @kv.Key
-                        </MudChip>
-                    }
-                </div>
-            }
-        </MudPaper>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Outlined.Wifi"
+                           OnClick="CheckService" Style="border-radius:8px;">
+                    Проверить сервис
+                </MudButton>
+
+                @if (_serviceChecked)
+                {
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:12px;">
+                        <MudIcon Icon="@(_serviceOk ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)"
+                                 Style="@(_serviceOk ? "color:#10b981;" : "color:#ef4444;")"
+                                 Size="Size.Small" />
+                        <MudText Typo="Typo.body2" Style="@(_serviceOk ? "color:#10b981;" : "color:#ef4444;")">
+                            @(_serviceOk ? "Сервис работает" : "Сервис недоступен")
+                        </MudText>
+                    </div>
+                }
+            </MudPaper>
+
+        </div>
     </MudItem>
 
     <!-- Save -->
     <MudItem xs="12">
         <MudButton Variant="Variant.Filled" Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Save"
+                   Style="min-width:160px; border-radius:12px; font-weight:600;"
                    OnClick="Save">
             Сохранить
         </MudButton>
     </MudItem>
+
 </MudGrid>
 
 @code {
-    string ApiKey      = "";
-    string QualityMode = "standard";
-    string OutputFolder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AudioPipeline");
-    string VstFolder   = @"C:\Program Files\Common Files\VST3";
-    string StemsUrl    = "http://localhost:8001";
-    string MixUrl      = "http://localhost:8002";
-    string VstUrl      = "http://localhost:8003";
-    string RvcUrl      = "http://localhost:8004";
+    int    TargetLufs     = -14;
+    string OutputFolder   = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "AudioPipeline");
+    string AudioServiceUrl = "http://localhost:8001";
 
-    Dictionary<string, bool> ServiceStatus = new();
+    bool _serviceChecked;
+    bool _serviceOk;
+
+    record LufsPreset(string Label, int Value);
+
+    List<LufsPreset> _lufsPresets =
+    [
+        new("Spotify / YouTube",  -14),
+        new("Apple Music",        -16),
+        new("Broadcast (-23 EBU)", -23),
+    ];
 
     protected override void OnInitialized()
     {
-        ApiKey    = Config["Claude:ApiKey"] ?? "";
-        StemsUrl  = Config["Microservices:StemsUrl"] ?? StemsUrl;
-        MixUrl    = Config["Microservices:MixUrl"]   ?? MixUrl;
-        VstUrl    = Config["Microservices:VstUrl"]   ?? VstUrl;
-        RvcUrl    = Config["Microservices:RvcUrl"]   ?? RvcUrl;
+        TargetLufs      = int.TryParse(Config["Pipeline:TargetLufs"], out var l) ? l : -14;
+        OutputFolder    = Config["Pipeline:OutputFolder"] ?? OutputFolder;
+        AudioServiceUrl = Config["Microservices:AudioUrl"]  ?? AudioServiceUrl;
     }
 
-    async Task CheckServices()
+    void SelectPreset(int value) => TargetLufs = value;
+
+    async Task CheckService()
     {
-        ServiceStatus.Clear();
+        _serviceChecked = false;
         var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-        foreach (var (name, url) in new[] {
-            ("Stems:8001", StemsUrl), ("Mix:8002", MixUrl),
-            ("VST:8003",   VstUrl),   ("RVC:8004",  RvcUrl) })
+        try
         {
-            try   { await http.GetAsync(url + "/health"); ServiceStatus[name] = true; }
-            catch { ServiceStatus[name] = false; }
+            var r = await http.GetAsync(AudioServiceUrl + "/health");
+            _serviceOk = r.IsSuccessStatusCode;
         }
+        catch { _serviceOk = false; }
+        _serviceChecked = true;
         StateHasChanged();
     }
 
     void Save()
     {
-        // In production write to appsettings.json or user secrets
         Snackbar.Add("Настройки сохранены (перезапустите приложение для применения)", Severity.Info);
     }
 }
