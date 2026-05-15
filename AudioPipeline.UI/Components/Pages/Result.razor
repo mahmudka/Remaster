@@ -279,8 +279,8 @@ else
     static float? GetFloat(JsonElement? el, string key)
     {
         if (el is null) return null;
-        if (el.Value.TryGetProperty(key, out var v) && v.TryGetSingle(out var f))
-            return f;
+        if (el.Value.TryGetProperty(key, out var v) && v.TryGetDouble(out var d))
+            return (float)d;
         return null;
     }
 

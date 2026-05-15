@@ -419,7 +419,7 @@ def master_track(input_path: str, output_path: str, plan: dict) -> dict:
     return {
         "output_wav": output_path,
         "lufs_final": after["lufs"],
-        "true_peak_final": after["true_peak_db"],
+        "true_peak_final": after["true_peak"],
         "dr_final": after["dr"],
         "lra_final": after["lra"],
         "analysis_after": after,

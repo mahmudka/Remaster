@@ -58,7 +58,7 @@ def measure_loudness(audio: np.ndarray, sr: int) -> dict:
 
     return {
         "lufs": float(lufs) if np.isfinite(lufs) else -70.0,
-        "true_peak_db": true_peak_db,
+        "true_peak": true_peak_db,
         "dr": dr,
         "lra": lra,
     }
@@ -283,7 +283,7 @@ def analyze_file(path: str, target_lufs: float = -14.0) -> dict:
 
     loud = measure_loudness(audio, sr)
     lufs       = loud["lufs"]
-    true_peak  = loud["true_peak_db"]
+    true_peak  = loud["true_peak"]
     dr         = loud["dr"]
     lra        = loud["lra"]
 
