@@ -4,7 +4,9 @@ scipy
 numpy
 scikit-learn
 pyodbc
-PyMuPDF
-anthropic
 python-multipart
 pedalboard
+librosa
+soundfile
+pyloudnorm
+noisereduce

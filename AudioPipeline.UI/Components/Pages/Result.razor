@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject PipelineService PipelineService
 @inject ISnackbar Snackbar
+@using System.Text.Json
 
 <PageTitle>Результат</PageTitle>
 
@@ -14,17 +15,17 @@ else
     <MudText Typo="Typo.h5" Class="mb-4">Результат обработки</MudText>
 
     <MudGrid>
-        <!-- Audio player -->
+        <!-- Audio players A/B -->
         <MudItem xs="12" md="8">
             <MudPaper Class="pa-4">
-                <MudText Typo="Typo.subtitle1" Class="mb-2">Мастер</MudText>
-                <AudioPlayer FilePath="@MasterPath" />
-
                 @if (OriginalPath is not null)
                 {
-                    <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Оригинал</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Secondary">Оригинал</MudText>
                     <AudioPlayer FilePath="@OriginalPath" />
+                    <MudDivider Class="my-3" />
                 }
+                <MudText Typo="Typo.subtitle2" Class="mb-1" Color="Color.Primary">Мастер</MudText>
+                <AudioPlayer FilePath="@MasterPath" />
             </MudPaper>
         </MudItem>
 
@@ -36,7 +37,7 @@ else
 
                 <MudDivider Class="my-3" />
 
-                <MudText Typo="Typo.subtitle2" Class="mb-2">Проблемы</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Что не так?</MudText>
                 <FeedbackTags @bind-Selected="SelectedTags" />
 
                 <MudTextField @bind-Value="Note" Label="Комментарий" Lines="3"
@@ -50,6 +51,58 @@ else
                 </MudButton>
             </MudPaper>
         </MudItem>
+
+        <!-- Before / After metrics table -->
+        @if (_before is not null || _after is not null)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-4">
+                    <MudText Typo="Typo.subtitle1" Class="mb-3">До / После</MudText>
+                    <MudTable Items="@_metrics" Dense="true" Striped="true" Hover="false">
+                        <HeaderContent>
+                            <MudTh>Параметр</MudTh>
+                            <MudTh>До</MudTh>
+                            <MudTh>После</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.Label</MudTd>
+                            <MudTd>@context.Before</MudTd>
+                            <MudTd>
+                                <MudText Color="@context.Color">@context.After</MudText>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudPaper>
+            </MudItem>
+        }
+
+        <!-- Problems detected -->
+        @if (_problems.Count > 0)
+        {
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4">
+                    <MudText Typo="Typo.subtitle1" Class="mb-3">Обнаруженные проблемы</MudText>
+                    @foreach (var tag in _problems)
+                    {
+                        <MudChip T="string" Color="Color.Warning" Class="ma-1">@TagLabel(tag)</MudChip>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
+
+        <!-- Applied fixes -->
+        @if (_appliedTags.Count > 0)
+        {
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4">
+                    <MudText Typo="Typo.subtitle1" Class="mb-3">Применённые исправления</MudText>
+                    @foreach (var tag in _appliedTags)
+                    {
+                        <MudChip T="string" Color="Color.Success" Class="ma-1">@TagLabel(tag)</MudChip>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
 
         <!-- Session info -->
         <MudItem xs="12">
@@ -71,22 +124,115 @@ else
     AudioPipeline.Shared.Models.MixSession? _session;
     string? MasterPath;
     string? OriginalPath;
+    JsonElement? _before;
+    JsonElement? _after;
+    List<string> _problems    = new();
+    List<string> _appliedTags = new();
 
     int          Rating       = 0;
     List<string> SelectedTags = new();
     string       Note         = "";
 
+    record MetricRow(string Label, string Before, string After, Color Color);
+    List<MetricRow> _metrics = new();
+
     protected override async Task OnInitializedAsync()
     {
-        _session   = await PipelineService.GetSessionAsync(JobId);
-        // Try master.wav first, then fallback name
+        _session = await PipelineService.GetSessionAsync(JobId);
+
         if (_session?.OutputPath is not null)
         {
             var wav = System.IO.Path.Combine(_session.OutputPath, "master.wav");
             MasterPath = File.Exists(wav) ? wav
                 : System.IO.Path.Combine(_session.OutputPath, "master_iter3.wav");
         }
+
+        if (_session?.InputFile is not null && File.Exists(_session.InputFile))
+            OriginalPath = _session.InputFile;
+
+        ParseAnalysis();
+        BuildMetrics();
     }
+
+    void ParseAnalysis()
+    {
+        if (_session?.AnalysisBeforeJson is not null)
+            try { _before = JsonSerializer.Deserialize<JsonElement>(_session.AnalysisBeforeJson); }
+            catch { }
+
+        if (_session?.AnalysisAfterJson is not null)
+            try { _after = JsonSerializer.Deserialize<JsonElement>(_session.AnalysisAfterJson); }
+            catch { }
+
+        if (_session?.ProblemsDetected is not null)
+            try
+            {
+                _problems = JsonSerializer.Deserialize<List<string>>(_session.ProblemsDetected)
+                            ?? _session.ProblemsDetected.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            }
+            catch { _problems = _session.ProblemsDetected.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList(); }
+
+        if (_session?.PlanJson is not null)
+            try
+            {
+                var plan = JsonSerializer.Deserialize<JsonElement>(_session.PlanJson);
+                if (plan.TryGetProperty("applied_tags", out var at))
+                    _appliedTags = at.EnumerateArray().Select(x => x.GetString() ?? "").Where(s => s.Length > 0).ToList();
+            }
+            catch { }
+    }
+
+    void BuildMetrics()
+    {
+        if (_before is null && _after is null) return;
+
+        AddMetric("LUFS",      "lufs",       "F1", " dB",    true);
+        AddMetric("True Peak", "true_peak",  "F1", " dBTP",  false);
+        AddMetric("DR",        "dr",         "F1", " dB",    true);
+        AddMetric("LRA",       "lra",        "F1", " LU",    true);
+        AddMetric("BPM",       "bpm",        "F0", "",       false);
+    }
+
+    void AddMetric(string label, string key, string fmt, string unit, bool higherIsBetter)
+    {
+        var bval = GetFloat(_before, key);
+        var aval = GetFloat(_after,  key);
+        var beforeStr = bval.HasValue ? $"{bval.Value.ToString(fmt)}{unit}" : "—";
+        var afterStr  = aval.HasValue ? $"{aval.Value.ToString(fmt)}{unit}" : "—";
+
+        var color = Color.Default;
+        if (bval.HasValue && aval.HasValue)
+        {
+            bool improved = higherIsBetter ? aval.Value > bval.Value : aval.Value < bval.Value;
+            color = improved ? Color.Success : Color.Warning;
+        }
+        _metrics.Add(new MetricRow(label, beforeStr, afterStr, color));
+    }
+
+    static float? GetFloat(JsonElement? el, string key)
+    {
+        if (el is null) return null;
+        if (el.Value.TryGetProperty(key, out var v) && v.TryGetSingle(out var f))
+            return f;
+        return null;
+    }
+
+    static string TagLabel(string tag) => tag switch
+    {
+        "metallic_resonance"   => "Металлические резонансы",
+        "muddy_lowmid"         => "Мутные низкие средние",
+        "missing_transients"   => "Нет транзиентов",
+        "over_compressed"      => "Перекомпрессия",
+        "artificial_stereo"    => "Искусственное стерео",
+        "phase_issues"         => "Проблемы фазы",
+        "ai_noise"             => "AI шум",
+        "sibilance"            => "Сибилянтность",
+        "sub_issues"           => "Проблемы суббаса",
+        "true_peak_clip"       => "Клиппинг True Peak",
+        "spectral_smearing"    => "Размытость спектра",
+        "loudness_mismatch"    => "Несоответствие громкости",
+        _                      => tag,
+    };
 
     async Task SubmitFeedback()
     {
