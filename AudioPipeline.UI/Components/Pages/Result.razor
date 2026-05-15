@@ -52,54 +52,59 @@ else
             </MudPaper>
         </MudItem>
 
-        <!-- Before / After metrics table -->
+        <!-- Before / After metrics -->
         @if (_before is not null || _after is not null)
         {
             <MudItem xs="12">
                 <MudPaper Class="pa-4">
-                    <MudText Typo="Typo.subtitle1" Class="mb-3">До / После</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="mb-3">Метрики до / после</MudText>
                     <MudTable Items="@_metrics" Dense="true" Striped="true" Hover="false">
                         <HeaderContent>
                             <MudTh>Параметр</MudTh>
                             <MudTh>До</MudTh>
                             <MudTh>После</MudTh>
+                            <MudTh>Изменение</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.Label</MudTd>
                             <MudTd>@context.Before</MudTd>
-                            <MudTd>
-                                <MudText Color="@context.Color">@context.After</MudText>
-                            </MudTd>
+                            <MudTd><MudText Color="@context.Color">@context.After</MudText></MudTd>
+                            <MudTd><MudText Color="@context.Color">@context.Delta</MudText></MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudPaper>
             </MudItem>
         }
 
-        <!-- Problems detected -->
-        @if (_problems.Count > 0)
+        <!-- Detailed problem/fix report -->
+        @if (_report.Count > 0)
         {
-            <MudItem xs="12" md="6">
+            <MudItem xs="12">
                 <MudPaper Class="pa-4">
-                    <MudText Typo="Typo.subtitle1" Class="mb-3">Обнаруженные проблемы</MudText>
-                    @foreach (var tag in _problems)
-                    {
-                        <MudChip T="string" Color="Color.Warning" Class="ma-1">@TagLabel(tag)</MudChip>
-                    }
-                </MudPaper>
-            </MudItem>
-        }
-
-        <!-- Applied fixes -->
-        @if (_appliedTags.Count > 0)
-        {
-            <MudItem xs="12" md="6">
-                <MudPaper Class="pa-4">
-                    <MudText Typo="Typo.subtitle1" Class="mb-3">Применённые исправления</MudText>
-                    @foreach (var tag in _appliedTags)
-                    {
-                        <MudChip T="string" Color="Color.Success" Class="ma-1">@TagLabel(tag)</MudChip>
-                    }
+                    <MudText Typo="Typo.subtitle1" Class="mb-3">Отчёт об обработке</MudText>
+                    <MudTable Items="@_report" Dense="true" Striped="true" Hover="false">
+                        <HeaderContent>
+                            <MudTh Style="width:200px">Проблема</MudTh>
+                            <MudTh Style="width:80px">Статус</MudTh>
+                            <MudTh>Что обнаружено</MudTh>
+                            <MudTh>Что сделано</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd><MudText><b>@context.Label</b></MudText></MudTd>
+                            <MudTd>
+                                @if (context.Fixed)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success">Исправлено</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">Обнаружено</MudChip>
+                                }
+                            </MudTd>
+                            <MudTd><MudText Typo="Typo.body2" Color="Color.Secondary">@context.Description</MudText></MudTd>
+                            <MudTd><MudText Typo="Typo.body2">@context.Action</MudText></MudTd>
+                        </RowTemplate>
+                    </MudTable>
                 </MudPaper>
             </MudItem>
         }
@@ -109,9 +114,10 @@ else
             <MudPaper Class="pa-4">
                 <MudText Typo="Typo.subtitle2" Class="mb-2">Детали сессии</MudText>
                 <MudGrid>
-                    <MudItem xs="4"><MudText><b>BPM:</b> @_session.Bpm?.ToString("F1")</MudText></MudItem>
-                    <MudItem xs="4"><MudText><b>Тональность:</b> @_session.Key</MudText></MudItem>
-                    <MudItem xs="4"><MudText><b>Жанр:</b> @_session.Genre</MudText></MudItem>
+                    <MudItem xs="3"><MudText><b>Job:</b> @_session.JobId</MudText></MudItem>
+                    <MudItem xs="3"><MudText><b>BPM:</b> @(_session.Bpm?.ToString("F0") ?? "—")</MudText></MudItem>
+                    <MudItem xs="3"><MudText><b>Тональность:</b> @(_session.Key ?? "—")</MudText></MudItem>
+                    <MudItem xs="3"><MudText><b>Жанр:</b> @(_session.Genre ?? "—")</MudText></MudItem>
                 </MudGrid>
             </MudPaper>
         </MudItem>
@@ -133,8 +139,11 @@ else
     List<string> SelectedTags = new();
     string       Note         = "";
 
-    record MetricRow(string Label, string Before, string After, Color Color);
-    List<MetricRow> _metrics = new();
+    record MetricRow(string Label, string Before, string After, string Delta, Color Color);
+    record ReportRow(string Label, string Description, string Action, bool Fixed);
+
+    List<MetricRow>  _metrics = new();
+    List<ReportRow>  _report  = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,6 +161,7 @@ else
 
         ParseAnalysis();
         BuildMetrics();
+        BuildReport();
     }
 
     void ParseAnalysis()
@@ -177,7 +187,10 @@ else
             {
                 var plan = JsonSerializer.Deserialize<JsonElement>(_session.PlanJson);
                 if (plan.TryGetProperty("applied_tags", out var at))
-                    _appliedTags = at.EnumerateArray().Select(x => x.GetString() ?? "").Where(s => s.Length > 0).ToList();
+                    _appliedTags = at.EnumerateArray()
+                        .Select(x => x.GetString() ?? "")
+                        .Where(s => s.Length > 0)
+                        .ToList();
             }
             catch { }
     }
@@ -185,28 +198,72 @@ else
     void BuildMetrics()
     {
         if (_before is null && _after is null) return;
-
-        AddMetric("LUFS",      "lufs",       "F1", " dB",    true);
-        AddMetric("True Peak", "true_peak",  "F1", " dBTP",  false);
-        AddMetric("DR",        "dr",         "F1", " dB",    true);
-        AddMetric("LRA",       "lra",        "F1", " LU",    true);
-        AddMetric("BPM",       "bpm",        "F0", "",       false);
+        AddMetric("LUFS",      "lufs",      "F1", " dB",   higherIsBetter: false, targetBetter: true);
+        AddMetric("True Peak", "true_peak", "F1", " dBTP", higherIsBetter: false, targetBetter: false);
+        AddMetric("DR",        "dr",        "F1", " dB",   higherIsBetter: true,  targetBetter: true);
+        AddMetric("LRA",       "lra",       "F1", " LU",   higherIsBetter: true,  targetBetter: true);
+        AddMetric("BPM",       "bpm",       "F0", "",      higherIsBetter: false,  targetBetter: false);
     }
 
-    void AddMetric(string label, string key, string fmt, string unit, bool higherIsBetter)
+    void AddMetric(string label, string key, string fmt, string unit, bool higherIsBetter, bool targetBetter)
     {
         var bval = GetFloat(_before, key);
         var aval = GetFloat(_after,  key);
         var beforeStr = bval.HasValue ? $"{bval.Value.ToString(fmt)}{unit}" : "—";
         var afterStr  = aval.HasValue ? $"{aval.Value.ToString(fmt)}{unit}" : "—";
 
+        string delta = "—";
         var color = Color.Default;
         if (bval.HasValue && aval.HasValue)
         {
-            bool improved = higherIsBetter ? aval.Value > bval.Value : aval.Value < bval.Value;
-            color = improved ? Color.Success : Color.Warning;
+            var diff = aval.Value - bval.Value;
+            delta = diff >= 0 ? $"+{diff.ToString(fmt)}{unit}" : $"{diff.ToString(fmt)}{unit}";
+            bool improved = targetBetter && (higherIsBetter ? diff > 0 : diff < 0);
+            color = improved ? Color.Success : (diff == 0 ? Color.Default : Color.Warning);
         }
-        _metrics.Add(new MetricRow(label, beforeStr, afterStr, color));
+        _metrics.Add(new MetricRow(label, beforeStr, afterStr, delta, color));
+    }
+
+    // Maps each tag to human-readable description of the problem and action taken
+    static readonly Dictionary<string, (string Description, string Action)> _tagInfo = new()
+    {
+        ["metallic_resonance"]  = ("Узкие резонансные пики в диапазоне 2–5 кГц — типичный AI-артефакт",
+                                   "EQ: срез −3 dB на 3500 Гц (Q=2.5) и −2 dB на 5000 Гц (Q=2.0)"),
+        ["muddy_lowmid"]        = ("Избыток энергии в диапазоне 200–400 Гц, маскирует чёткость",
+                                   "EQ: срез −4 dB на 300 Гц и −2 dB на 200 Гц"),
+        ["missing_transients"]  = ("Низкая плотность атак — удары и щелчки размыты или отсутствуют",
+                                   "Transient shaper: усиление атак; лёгкая компрессия ratio 1.5"),
+        ["over_compressed"]     = ("Динамический диапазон DR < 6 dB — трек звучит монотонно и устало",
+                                   "Компрессор с расширением (expander), attack 40 мс, ratio 1.3"),
+        ["artificial_stereo"]   = ("Корреляция L/R > 0.98 или < −0.3 — стерео неестественное или синтетическое",
+                                   "Mid/Side: ширина стерео скорректирована до 0.7"),
+        ["phase_issues"]        = ("Энергия боковых каналов (Side) превышает центр (Mid) — возможные инверсии фазы",
+                                   "Mid/Side: ширина стерео уменьшена до 0.8"),
+        ["ai_noise"]            = ("Шумовой фон выше −55 dBFS — характерный шум нейросети",
+                                   "Шумоподавление (noisereduce, prop_decrease=0.85)"),
+        ["sibilance"]           = ("Избыток энергии в диапазоне 5–8 кГц — резкие свистящие звуки",
+                                   "De-esser: частотное сжатие 5500–8000 Гц; EQ −2.5 dB на 6500 Гц"),
+        ["sub_issues"]          = ("Чрезмерный суббас 20–60 Гц — размытость и проблемы с балансом",
+                                   "Mono below 80 Гц: суббас сведён в моно; EQ: highpass на 40 Гц"),
+        ["true_peak_clip"]      = ("True Peak > −0.5 dBTP — клиппинг при конвертации и стриминге",
+                                   "Деклиппинг + лимитер ceiling −1.0 dBTP с upsampling 4×"),
+        ["spectral_smearing"]   = ("Нехватка энергии выше 12 кГц — \"мыльный\" верх, потеря воздуха",
+                                   "HF Gain +1.5 dB выше 12 кГц; EQ: подъём +1.5 dB на 14 кГц"),
+        ["loudness_mismatch"]   = ("LUFS далеко от целевого значения — трек тихий или слишком громкий",
+                                   "Double-pass LUFS нормализация до целевого уровня + true-peak limit"),
+    };
+
+    void BuildReport()
+    {
+        foreach (var tag in _problems)
+        {
+            var (desc, action) = _tagInfo.TryGetValue(tag, out var info)
+                ? info
+                : ("Обнаружен нестандартный артефакт", "Применена общая обработка");
+
+            bool wasFixed = _appliedTags.Contains(tag);
+            _report.Add(new ReportRow(TagLabel(tag), desc, wasFixed ? action : "Не применялось", wasFixed));
+        }
     }
 
     static float? GetFloat(JsonElement? el, string key)
@@ -219,19 +276,19 @@ else
 
     static string TagLabel(string tag) => tag switch
     {
-        "metallic_resonance"   => "Металлические резонансы",
-        "muddy_lowmid"         => "Мутные низкие средние",
-        "missing_transients"   => "Нет транзиентов",
-        "over_compressed"      => "Перекомпрессия",
-        "artificial_stereo"    => "Искусственное стерео",
-        "phase_issues"         => "Проблемы фазы",
-        "ai_noise"             => "AI шум",
-        "sibilance"            => "Сибилянтность",
-        "sub_issues"           => "Проблемы суббаса",
-        "true_peak_clip"       => "Клиппинг True Peak",
-        "spectral_smearing"    => "Размытость спектра",
-        "loudness_mismatch"    => "Несоответствие громкости",
-        _                      => tag,
+        "metallic_resonance"  => "Металлические резонансы",
+        "muddy_lowmid"        => "Мутные низкие средние",
+        "missing_transients"  => "Нет транзиентов",
+        "over_compressed"     => "Перекомпрессия",
+        "artificial_stereo"   => "Искусственное стерео",
+        "phase_issues"        => "Проблемы фазы",
+        "ai_noise"            => "AI шум",
+        "sibilance"           => "Сибилянтность",
+        "sub_issues"          => "Проблемы суббаса",
+        "true_peak_clip"      => "Клиппинг True Peak",
+        "spectral_smearing"   => "Размытость спектра",
+        "loudness_mismatch"   => "Несоответствие громкости",
+        _                     => tag,
     };
 
     async Task SubmitFeedback()

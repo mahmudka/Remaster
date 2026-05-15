@@ -23,7 +23,7 @@ public class AnalysisAgent : IAgent
         using var form = new MultipartFormDataContent();
         await using var stream = File.OpenRead(ctx.InputFile);
         form.Add(new StreamContent(stream), "file", Path.GetFileName(ctx.InputFile));
-        form.Add(new StringContent(ctx.TargetLufs.ToString("F1")), "target_lufs");
+        form.Add(new StringContent(ctx.TargetLufs.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)), "target_lufs");
 
         var resp = await _http.PostAsync($"{_baseUrl}/analyze", form, ct);
         if (!resp.IsSuccessStatusCode)
