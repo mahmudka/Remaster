@@ -5,8 +5,6 @@ numpy
 scikit-learn
 pyodbc
 python-multipart
-pedalboard
 librosa
-soundfile
 pyloudnorm
 noisereduce

@@ -2,13 +2,12 @@
 Full audio analysis: loudness metrics + 12 AI-artifact tags detection.
 """
 
-import json
 import warnings
 import numpy as np
-import soundfile as sf
 import pyloudnorm as pyln
 from scipy import signal
 from scipy.fft import rfft, rfftfreq
+from scipy.io import wavfile
 
 warnings.filterwarnings("ignore")
 
@@ -16,8 +15,19 @@ warnings.filterwarnings("ignore")
 # ── Load ──────────────────────────────────────────────────────────────────────
 
 def load_wav(path: str) -> tuple[np.ndarray, int]:
-    data, sr = sf.read(path, dtype="float32", always_2d=True)
-    return data, sr
+    sr, data = wavfile.read(path)
+    # Normalise to float32 [-1, 1]
+    if data.dtype == np.int16:
+        data = data.astype(np.float32) / 32768.0
+    elif data.dtype == np.int32:
+        data = data.astype(np.float32) / 2147483648.0
+    elif data.dtype == np.uint8:
+        data = (data.astype(np.float32) - 128.0) / 128.0
+    else:
+        data = data.astype(np.float32)
+    if data.ndim == 1:
+        data = data[:, np.newaxis]
+    return data, int(sr)
 
 
 def to_mono(audio: np.ndarray) -> np.ndarray:
