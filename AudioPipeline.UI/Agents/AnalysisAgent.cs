@@ -34,13 +34,13 @@ public class AnalysisAgent : IAgent
 
         var doc = await resp.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
 
-        ctx.Bpm           = doc.TryGetProperty("bpm",       out var b)  ? b.GetSingle()          : 0;
-        ctx.Key           = doc.TryGetProperty("key",       out var k)  ? k.GetString() ?? ""     : "";
-        ctx.Genre         = doc.TryGetProperty("genre_hint",out var g)  ? g.GetString() ?? "unknown" : "unknown";
-        ctx.LufsBefore    = doc.TryGetProperty("lufs",      out var lu) ? lu.GetSingle()          : 0;
-        ctx.TruePeakBefore= doc.TryGetProperty("true_peak", out var tp) ? tp.GetSingle()          : 0;
-        ctx.DrBefore      = doc.TryGetProperty("dr",        out var dr) ? dr.GetSingle()          : 0;
-        ctx.LraBefore     = doc.TryGetProperty("lra",       out var lr) ? lr.GetSingle()          : 0;
+        ctx.Bpm           = doc.TryGetProperty("bpm",       out var b)  ? (float)b.GetDouble()          : 0;
+        ctx.Key           = doc.TryGetProperty("key",       out var k)  ? k.GetString() ?? ""             : "";
+        ctx.Genre         = doc.TryGetProperty("genre_hint",out var g)  ? g.GetString() ?? "unknown"      : "unknown";
+        ctx.LufsBefore    = doc.TryGetProperty("lufs",      out var lu) ? (float)lu.GetDouble()           : 0;
+        ctx.TruePeakBefore= doc.TryGetProperty("true_peak", out var tp) ? (float)tp.GetDouble()           : 0;
+        ctx.DrBefore      = doc.TryGetProperty("dr",        out var dr) ? (float)dr.GetDouble()           : 0;
+        ctx.LraBefore     = doc.TryGetProperty("lra",       out var lr) ? (float)lr.GetDouble()           : 0;
         ctx.AnalysisJson  = doc.GetRawText();
 
         if (doc.TryGetProperty("problems", out var probs))

@@ -21,7 +21,7 @@ public class MixSession
     [MaxLength(100)]
     public string? Genre { get; set; }
 
-    public float? Bpm { get; set; }
+    public double? Bpm { get; set; }
 
     [MaxLength(50)]
     public string? Key { get; set; }

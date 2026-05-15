@@ -63,7 +63,7 @@ else
         </MudItem>
 
         <!-- Before / After metrics -->
-        @if (_before is not null || _after is not null)
+        @if (_before.Count > 0 || _after.Count > 0)
         {
             <MudItem xs="12">
                 <MudPaper Class="pa-4">
@@ -140,8 +140,8 @@ else
     AudioPipeline.Shared.Models.MixSession? _session;
     string? MasterPath;
     string? OriginalPath;
-    JsonElement? _before;
-    JsonElement? _after;
+    Dictionary<string, double> _before = new();
+    Dictionary<string, double> _after  = new();
     List<string> _problems    = new();
     List<string> _appliedTags = new();
 
@@ -177,11 +177,23 @@ else
     void ParseAnalysis()
     {
         if (_session?.AnalysisBeforeJson is not null)
-            try { _before = JsonSerializer.Deserialize<JsonElement>(_session.AnalysisBeforeJson); }
+            try
+            {
+                var d = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_session.AnalysisBeforeJson);
+                if (d is not null)
+                    foreach (var kv in d)
+                        if (kv.Value.TryGetDouble(out var v)) _before[kv.Key] = v;
+            }
             catch { }
 
         if (_session?.AnalysisAfterJson is not null)
-            try { _after = JsonSerializer.Deserialize<JsonElement>(_session.AnalysisAfterJson); }
+            try
+            {
+                var d = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(_session.AnalysisAfterJson);
+                if (d is not null)
+                    foreach (var kv in d)
+                        if (kv.Value.TryGetDouble(out var v)) _after[kv.Key] = v;
+            }
             catch { }
 
         if (_session?.ProblemsDetected is not null)
@@ -207,7 +219,7 @@ else
 
     void BuildMetrics()
     {
-        if (_before is null && _after is null) return;
+        if (_before.Count == 0 && _after.Count == 0) return;
         AddMetric("LUFS",      "lufs",      "F1", " dB",   higherIsBetter: false, targetBetter: true);
         AddMetric("True Peak", "true_peak", "F1", " dBTP", higherIsBetter: false, targetBetter: false);
         AddMetric("DR",        "dr",        "F1", " dB",   higherIsBetter: true,  targetBetter: true);
@@ -276,12 +288,9 @@ else
         }
     }
 
-    static float? GetFloat(JsonElement? el, string key)
+    static float? GetFloat(Dictionary<string, double> dict, string key)
     {
-        if (el is null) return null;
-        if (el.Value.TryGetProperty(key, out var v) && v.TryGetDouble(out var d))
-            return (float)d;
-        return null;
+        return dict.TryGetValue(key, out var v) ? (float)v : null;
     }
 
     static string TagLabel(string tag) => tag switch

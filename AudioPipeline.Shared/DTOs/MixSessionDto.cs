@@ -6,7 +6,7 @@ public class MixSessionDto
     public string JobId { get; set; } = string.Empty;
     public string InputFile { get; set; } = string.Empty;
     public string? Genre { get; set; }
-    public float? Bpm { get; set; }
+    public double? Bpm { get; set; }
     public string? Key { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? BlocksRun { get; set; }
